@@ -7,6 +7,7 @@ public class moveplayer : MonoBehaviour
     public float rotationSpeed = 100f;
 
     public rewardManager rewardManager;
+    public CameraManager cameraManager;
 
     private Vector3 targetPosition;
     private Quaternion targetRotation;
@@ -28,6 +29,7 @@ public class moveplayer : MonoBehaviour
         else if (!isMoving)
         {
             CheckInput();
+            rewardManager.RewardFound(transform.position);
         }
         else if (isMoving)
         {
@@ -41,22 +43,30 @@ public class moveplayer : MonoBehaviour
         Keyboard keyboard = Keyboard.current;
         
         if (keyboard == null) return;  // Safety check
-        
-        else if (keyboard.upArrowKey.wasPressedThisFrame)
+
+        if (keyboard.upArrowKey.wasPressedThisFrame) //V: up key is the only one allowing to move, the other ones are just controlling rotations
         {
-            SetTarget(0f);
+            Vector3 potentialTarget = transform.position + (transform.forward * gridStepSize);
+            if (WithinBounds(potentialTarget)){
+                targetPosition = potentialTarget;
+                isMoving = true;
+            }
+            cameraManager.DisableMiniMap();
         }
         else if (keyboard.downArrowKey.wasPressedThisFrame)
         {
             SetTarget(180f);
+            cameraManager.DisableMiniMap();
         }
         else if (keyboard.leftArrowKey.wasPressedThisFrame)
         {
             SetTarget( -90f);
+            cameraManager.DisableMiniMap();
         }
         else if (keyboard.rightArrowKey.wasPressedThisFrame)
         {
             SetTarget(90f);
+            cameraManager.DisableMiniMap();
         }
     }
 
@@ -81,19 +91,6 @@ public class moveplayer : MonoBehaviour
         {
             transform.rotation = targetRotation;
             isRotating = false;
-
-            //V: calculate target for movement
-            Vector3 potentialTarget = transform.position + (transform.forward * gridStepSize);
-
-            if (WithinBounds(potentialTarget)){
-                targetPosition = potentialTarget;
-                isMoving = true;
-            }
-
-            else if (!WithinBounds(targetPosition))
-            {
-                Debug.Log("can't move, would exceed boundaries");
-            }
         }
     }
 

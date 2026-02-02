@@ -111,4 +111,21 @@ public class CameraManager : MonoBehaviour
         
         Debug.Log("Find the rewards in order: A → B → C → D");
     }
+
+    public void DisableMiniMap()
+    {
+        Debug.Log("DisableMiniMap() called");
+        Debug.Log($"miniMapCamera is null: {miniMapCamera == null}");
+        Debug.Log($"miniMapCamera.enabled: {miniMapCamera != null && miniMapCamera.enabled}");
+        
+        if (miniMapCamera != null && miniMapCamera.enabled)
+        {
+            miniMapCamera.enabled = false;
+            Debug.Log("Minimap disabled");
+        }
+        else
+        {
+            Debug.Log("Minimap was already disabled or is null");
+        }
+    }
 }

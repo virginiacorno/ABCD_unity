@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine.InputSystem; 
 
 public class rewardManager : MonoBehaviour
 {
@@ -145,20 +146,26 @@ public class rewardManager : MonoBehaviour
         
         if (distance < 0.01f)
         {
-            Debug.Log($"Reward {nextRewardIdx + 1}/4 found!");
-            ShowReward(nextRewardIdx);  
-            lastShownRewardIdx = nextRewardIdx;  
-            
-            nextRewardIdx++;
-            
-            if (nextRewardIdx > 3) //V: check if we have just found the last reward
+            Keyboard keyboard = Keyboard.current;
+            if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
             {
-                repsCompleted++;
-                Debug.Log($"Last reward found! Trial {repsCompleted}/3 complete");
-                CompleteTrial();
+                Debug.Log("spacebar was pressed");
+                Debug.Log($"Reward {nextRewardIdx + 1}/4 found!");
+                ShowReward(nextRewardIdx);  
+                lastShownRewardIdx = nextRewardIdx;  
+                
+                nextRewardIdx++;
+                
+                if (nextRewardIdx > 3) //V: check if we have just found the last reward
+                {
+                    repsCompleted++;
+                    Debug.Log($"Last reward found! Trial {repsCompleted}/3 complete");
+                    CompleteTrial();
+                }
+                
+                return true;  
             }
-            
-            return true;
+            return false;
         }
         else
         {
