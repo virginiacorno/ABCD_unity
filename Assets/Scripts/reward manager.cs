@@ -118,6 +118,12 @@ public class rewardManager : MonoBehaviour
         }
     }
 
+    //V: need repetition to ensure some delay between end of previous trial and loading new configurations
+    public void LoadConfiguration()
+    {
+        LoadConfiguration(currentConfigIdx);
+    }
+
     public void LoadConfiguration(int index)
     {
         if (index >= 0 && index < configData.configurations.Count)
@@ -191,7 +197,7 @@ public class rewardManager : MonoBehaviour
                 lastShownRewardIdx = nextRewardIdx;
 
                 nextRewardIdx++;
-                if (config.IsABCType && nextRewardIdx == 3) //V: if we are in the ABC configuration and we have just found reward C
+                if (config.IsABCType && nextRewardIdx == 3 && repsCompleted < configData.trialsPerConfig - 1) //V: if we are in the ABC configuration and we have just found reward C and are not in the last repetition
                 {
                     if (cueObject != null)
                     {
@@ -253,7 +259,7 @@ public class rewardManager : MonoBehaviour
                     }
                     else
                     {
-                        LoadConfiguration(currentConfigIdx);
+                        Invoke("LoadConfiguration", 2f);
                         Invoke("ResetTrial", 2f);
                     }
                 } 
@@ -348,7 +354,7 @@ public class rewardManager : MonoBehaviour
         }
     }
 
-    void HideCue()
+    public void HideCue()
     {
         if (cueObject != null)
         {

@@ -620,8 +620,10 @@ MonoBehaviour:
   miniMapCamera: {fileID: 679560050}
   rewardManager: {fileID: 1972259391}
   player: {fileID: 918918307}
-  rewardDisplayTime: 1.5
-  pauseBetweenRewards: 0.5
+  rewardDisplayTime:
+  - 0
+  - 0
+  pauseBetweenRewards: []
   pauseBetweenSeq: 1
   memorizationRepetitions: 2
 --- !u!4 &206655265

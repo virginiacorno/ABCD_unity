@@ -15,8 +15,8 @@ public class CameraManager : MonoBehaviour
     public GameObject player;
     
     //V: specify timing variables
-    public float rewardDisplayTime = 1.5f;
-    public float pauseBetweenRewards = 0.5f;
+    public float[] rewardDisplayTime;
+    public float[] pauseBetweenRewards;
     public float pauseBetweenSeq = 1f;
     
     [Header("Memorization Settings")]
@@ -24,6 +24,10 @@ public class CameraManager : MonoBehaviour
     
     void Start()
     {
+        //V: Initialize timing arrays
+        rewardDisplayTime = new float[] {1.5f, 0.75f};
+        pauseBetweenRewards = new float[] {0.5f, 0.25f};
+        
         //V: Start with first configuration (index 0)
         StartNewConfiguration(0);
     }
@@ -49,6 +53,7 @@ public class CameraManager : MonoBehaviour
     
     void SetupMemorizationCamera()
     {
+        rewardManager.HideCue();
         firstPersonCamera.enabled = false;
         miniMapCamera.enabled = true;
         
@@ -80,11 +85,11 @@ public class CameraManager : MonoBehaviour
                 rewardManager.ShowReward(i);
                 Debug.Log($"Reward {i + 1}/4");
                 
-                yield return new WaitForSeconds(rewardDisplayTime);
+                yield return new WaitForSeconds(rewardDisplayTime[repetition]);
                 
                 rewardManager.HideReward(i);
                 
-                yield return new WaitForSeconds(pauseBetweenRewards);
+                yield return new WaitForSeconds(pauseBetweenRewards[repetition]);
             }
             
             //V: Pause between repetitions (but not after the last one)
