@@ -80,37 +80,35 @@ public class DataLogger : MonoBehaviour
         participantID = participant;
         studyID = study;
         sessionID = session;
-        
+
         taskStartTime = Time.realtimeSinceStartup;
-        
-        // Create data directory
+
+#if !UNITY_WEBGL
+        // Create data directory (file I/O only works outside the browser)
         string dataDir = Path.Combine(Application.dataPath, "..", "data");
         if (!Directory.Exists(dataDir))
         {
             Directory.CreateDirectory(dataDir);
         }
-        
+
         // Create filename with timestamp
         string timestamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        dataFilePath = Path.Combine(dataDir, 
+        dataFilePath = Path.Combine(dataDir,
             $"{participantID}_{studyID}_{timestamp}_results.csv");
-        
+
         // Initialize CSV
         csvWriter = new StreamWriter(dataFilePath, false);
         csvWriter.WriteLine(string.Join(",", columnHeaders));
         csvWriter.Flush();
-        
+
         Debug.Log($"Data logging initialized. File: {dataFilePath}");
+#else
+        Debug.Log("WebGL build: file logging disabled, data handled by Pavlovia");
+#endif
     }
 
     public void LogEvent(Dictionary<string, object> data)
     {
-        if (csvWriter == null)
-        {
-            Debug.LogError("DataLogger not initialized!");
-            return;
-        }
-
         //V: add this data if not provided earlier
         if (!data.ContainsKey("participant")) data["participant"] = participantID;
         if (!data.ContainsKey("study_id")) data["study_id"] = studyID;
@@ -118,6 +116,13 @@ public class DataLogger : MonoBehaviour
         if (!data.ContainsKey("session")) data["session"] = "001";
         if (!data.ContainsKey("date")) data["date"] = DateTime.Now.ToString("yyyy-MM-dd");
         if (!data.ContainsKey("t_global")) data["t_global"] = Time.realtimeSinceStartup;
+
+#if !UNITY_WEBGL
+        if (csvWriter == null)
+        {
+            Debug.LogError("DataLogger not initialized!");
+            return;
+        }
 
         // Build row
         List<string> rowValues = new List<string>();
@@ -135,6 +140,7 @@ public class DataLogger : MonoBehaviour
 
         csvWriter.WriteLine(string.Join(",", rowValues)); //V: join all values comma-separated (csv format)
         csvWriter.Flush(); // Write immediately for fMRI safety
+#endif
     }
 
     private string EscapeCSV(string value) //V: function to handle special characters
@@ -151,12 +157,14 @@ public class DataLogger : MonoBehaviour
         return Time.realtimeSinceStartup - taskStartTime;
     }
 
-    void OnApplicationQuit() 
+    void OnApplicationQuit()
     {
+#if !UNITY_WEBGL
         if (csvWriter != null)
         {
             csvWriter.Close();
             Debug.Log($"Data saved to: {dataFilePath}");
         }
+#endif
     }
 }

@@ -2884,8 +2884,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Careful, the gold is now hidden somewhere else! Use the space bar to dig
-    it up!
+  m_text: Careful, the treasure boxes are now hidden somewhere else! Use the space
+    bar to dig them up!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3363,7 +3363,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: Well done, pirate, you found all the gold!
+  m_text: Well done, pirate, you found all the treasures!
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3500,10 +3500,20 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Pirates hid a tresure on a secluded sandy island. Find the gold in the
-    correct sequence!\n\nUse your arrows to turn left, right and backwards and use
-    the up arrow to move forwards. \n\nPress the space bar to uncover the gold, but
-    be careful, the gold won't appear if it's not the correct order!"
+  m_text: 'Pirates hid treasure on a secluded sandy island. Your goal is to uncover
+    four treasure boxes in the correct order.
+
+
+    Use the left, right, and down
+    arrow keys to turn, and the up arrow key to move forward.
+
+
+    Press the space
+    bar to uncover a treasure box.
+
+
+    Be careful! Treasure boxes will only be
+    uncovered successfully if they are found in the correct order.'
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -3688,7 +3698,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c5e4cc4586714f079c432bb4e621ac5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::rewardManager
-  configurationFile: {fileID: 4900000, guid: 63410d264799d45f481cf3104eaa4c88, type: 3}
+  configurationFile: {fileID: 4900000, guid: bcedf1d0ea1254e1aab37edcd07f0af9, type: 3}
   rewardPrefab: {fileID: 7759381522125351291, guid: 2269c5cfaa7f7314bba868f540b5ddad, type: 3}
   instructionManager: {fileID: 25324122}
   cueObject: {fileID: 150348452}

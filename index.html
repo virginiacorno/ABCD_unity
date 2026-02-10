@@ -52,12 +52,12 @@
       }
 
       var buildUrl = "Build";
-      var loaderUrl = buildUrl + "/ABCD_pavlovia.loader.js";
+      var loaderUrl = buildUrl + "/ABCD_git.loader.js";
       var config = {
         arguments: [],
-        dataUrl: buildUrl + "/ABCD_pavlovia.data",
-        frameworkUrl: buildUrl + "/ABCD_pavlovia.framework.js",
-        codeUrl: buildUrl + "/ABCD_pavlovia.wasm",
+        dataUrl: buildUrl + "/ABCD_git.data",
+        frameworkUrl: buildUrl + "/ABCD_git.framework.js",
+        codeUrl: buildUrl + "/ABCD_git.wasm",
         streamingAssetsUrl: "StreamingAssets",
         companyName: "DefaultCompany",
         productName: "ABCD_unity",
@@ -125,6 +125,39 @@
                 alert(message);
               });
             };
+
+      /* --- PostMessage bridge for hosted build (no Unity recompile needed) ---
+        Watches Unity console logs and posts 'ABCD_DONE' to parent when the
+        final completion string appears.
+      */
+      (function(){
+        const targetOrigin = '*';
+        const originalLog = console.log.bind(console);
+        let messageSent = false;
+
+        console.log = function(...args) {
+          try {
+            originalLog(...args);
+
+            if (messageSent) return;
+
+            const text = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
+
+            if (text.includes('All configurations completed!') ||
+                text.includes('FinishAllConfigurations: all configs completed.') ||
+                text.includes('ABCD_DONE')) {
+              messageSent = true;
+              try { window.parent.postMessage('ABCD_DONE', targetOrigin); }
+              catch (e) {
+                try { window.parent.postMessage('ABCD_DONE', '*'); } catch (e2) {}
+              }
+              originalLog('[postMessage bridge] ABCD_DONE sent to parent.');
+            }
+          } catch (e) {
+            try { originalLog('console wrapper error', e); } catch (_) {}
+          }
+        };
+      })();
 
       document.body.appendChild(script);
 
