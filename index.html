@@ -126,39 +126,6 @@
               });
             };
 
-      /* --- PostMessage bridge for hosted build (no Unity recompile needed) ---
-        Watches Unity console logs and posts 'ABCD_DONE' to parent when the
-        final completion string appears.
-      */
-      (function(){
-        const targetOrigin = '*';
-        const originalLog = console.log.bind(console);
-        let messageSent = false;
-
-        console.log = function(...args) {
-          try {
-            originalLog(...args);
-
-            if (messageSent) return;
-
-            const text = args.map(a => (typeof a === 'object' ? JSON.stringify(a) : String(a))).join(' ');
-
-            if (text.includes('All configurations completed!') ||
-                text.includes('FinishAllConfigurations: all configs completed.') ||
-                text.includes('ABCD_DONE')) {
-              messageSent = true;
-              try { window.parent.postMessage('ABCD_DONE', targetOrigin); }
-              catch (e) {
-                try { window.parent.postMessage('ABCD_DONE', '*'); } catch (e2) {}
-              }
-              originalLog('[postMessage bridge] ABCD_DONE sent to parent.');
-            }
-          } catch (e) {
-            try { originalLog('console wrapper error', e); } catch (_) {}
-          }
-        };
-      })();
-
       document.body.appendChild(script);
 
     </script>
