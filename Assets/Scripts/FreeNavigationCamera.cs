@@ -4,6 +4,12 @@ using System.Collections;
 
 public class FreeNavigationCamera : MonoBehaviour
 {
+#if UNITY_WEBGL
+    private void InitLogger(string p, string s, string sess) => WebDataLogger.Instance.InitializeWithInfo(p, s, sess);
+#else
+    private void InitLogger(string p, string s, string sess) => DataLogger.Instance.InitializeWithInfo(p, s, sess);
+#endif
+
     public Camera firstPersonCamera;
     public Camera miniMapCamera;
     public GameObject player;
@@ -12,7 +18,7 @@ public class FreeNavigationCamera : MonoBehaviour
     public void StartNewConfiguration(int configIndex)
     {
         //V: test data logging
-        DataLogger.Instance.InitializeWithInfo("TEST_P001", "pilot_study", "001");
+        InitLogger("TEST_P001", "pilot_study", "001");
         
         //V: Load the new configuration in reward manager
         rewardManager.LoadConfiguration(configIndex);

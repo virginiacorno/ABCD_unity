@@ -4,6 +4,14 @@ using UnityEngine.InputSystem;
 
 public class rewardManager : MonoBehaviour
 {
+#if UNITY_WEBGL
+    private void LogData(Dictionary<string, object> data) => WebDataLogger.Instance.LogEvent(data);
+    private float CurrentRunTime() => WebDataLogger.Instance.GetCurrentRunTime();
+#else
+    private void LogData(Dictionary<string, object> data) => DataLogger.Instance.LogEvent(data);
+    private float CurrentRunTime() => DataLogger.Instance.GetCurrentRunTime();
+#endif
+
     [System.Serializable]
     public class GridPosition
     {
@@ -194,11 +202,11 @@ public class rewardManager : MonoBehaviour
             bool atRewardLocation = (distance < 0.01f);
             
             // log all space bar presses
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "reward_check"},
                 {"key_pressed", "space"},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()},
+                {"t_curr_run", CurrentRunTime()},
                 {"curr_loc_x", playerPosition.x},
                 {"curr_loc_y", playerPosition.z},
                 {"curr_rew_x", currReward.transform.position.x},
@@ -228,12 +236,12 @@ public class rewardManager : MonoBehaviour
                     {
                         cueObject.SetActive(true);
                         
-                        DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+                        LogData(new System.Collections.Generic.Dictionary<string, object>
                         {
                             {"event_type", "cue_displayed"},
                             {"cue_displayed", true},
-                            {"cue_time", DataLogger.Instance.GetCurrentRunTime()},
-                            {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                            {"cue_time", CurrentRunTime()},
+                            {"t_curr_run", CurrentRunTime()}
                         });
                         
                         Debug.Log("Cue displayed - ABC sequence at C");
@@ -245,13 +253,13 @@ public class rewardManager : MonoBehaviour
                     player.inputEnabled = false;
                     repsCompleted++;
 
-                    DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+                    LogData(new System.Collections.Generic.Dictionary<string, object>
                     {
                         {"event_type", "trial_complete"},
                         {"config_index", currentConfigIdx},
                         {"repetition_completed", repsCompleted},
                         {"total_repetitions", configData.trialsPerConfig},
-                        {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                        {"t_curr_run", CurrentRunTime()}
                     });
 
                     Invoke("CompleteTrial", 0.5f);
@@ -345,7 +353,7 @@ public class rewardManager : MonoBehaviour
 
         player.inputEnabled = true;
 
-        DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+        LogData(new System.Collections.Generic.Dictionary<string, object>
         {
             {"event_type", "trial_start"},
             {"config_index", currentConfigIdx},
@@ -353,7 +361,7 @@ public class rewardManager : MonoBehaviour
             {"trial_type", configData.configurations[currentConfigIdx].IsABCType ? "ABC" : "ABCD"},
             {"sequence", configData.configurations[currentConfigIdx].IsABCType ? "A-B-C" : "A-B-C-D"},
             {"repetition", repsCompleted},
-            {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+            {"t_curr_run", CurrentRunTime()}
         });
         
         Debug.Log($"Starting {configData.configurations[currentConfigIdx].configName}");
@@ -381,17 +389,17 @@ public class rewardManager : MonoBehaviour
             Debug.Log($"Showing reward at index {index}, name: {currentRewardObjects[index].name}");
             //Debug.Log($"Renderer before: {currentRewardObjects[index].GetComponent<Renderer>().enabled}");
 
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "reward"},
-                {"reward_onset_time", DataLogger.Instance.GetCurrentRunTime()},
+                {"reward_onset_time", CurrentRunTime()},
                 {"rew_loc_x", currentRewardObjects[index].transform.position.x},
                 {"rew_loc_y", currentRewardObjects[index].transform.position.z},
                 {"reward_letter", (char)('A' + index)},
                 {"reward_index", index},
                 {"config_index", currentConfigIdx},
                 {"state", (char)('A' + index)},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                {"t_curr_run", CurrentRunTime()}
             });
             
             //currentRewardObjects[index].GetComponent<Renderer>().enabled = true;
@@ -412,13 +420,13 @@ public class rewardManager : MonoBehaviour
     {
         if (index >= 0 && index < currentRewardObjects.Length && currentRewardObjects[index] != null)
         {
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "reward_offset"},
-                {"reward_offset_time", DataLogger.Instance.GetCurrentRunTime()},
+                {"reward_offset_time", CurrentRunTime()},
                 {"reward_letter", (char)('A' + index)},
                 {"reward_index", index},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                {"t_curr_run", CurrentRunTime()}
             });
 
             //currentRewardObjects[index].GetComponent<Renderer>().enabled = false;

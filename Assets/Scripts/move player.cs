@@ -2,6 +2,14 @@ using UnityEngine;
 using UnityEngine.InputSystem; 
 public class moveplayer : MonoBehaviour
 {
+#if UNITY_WEBGL
+    private void LogData(System.Collections.Generic.Dictionary<string, object> data) => WebDataLogger.Instance.LogEvent(data);
+    private float CurrentRunTime() => WebDataLogger.Instance.GetCurrentRunTime();
+#else
+    private void LogData(System.Collections.Generic.Dictionary<string, object> data) => DataLogger.Instance.LogEvent(data);
+    private float CurrentRunTime() => DataLogger.Instance.GetCurrentRunTime();
+#endif
+
     public float gridStepSize = 10.3f;
     public float moveSpeed = 5.0f;
     public float rotationSpeed = 100f;
@@ -62,7 +70,7 @@ public class moveplayer : MonoBehaviour
         if (keyboard == null) return;  // Safety check
 
         string keyPressed = null;
-        float keyPressTime = DataLogger.Instance.GetCurrentRunTime();
+        float keyPressTime = CurrentRunTime();
         Vector3 oldPosition = transform.position;
 
         if (keyboard.upArrowKey.wasPressedThisFrame) //V: up key is the only one allowing to move, the other ones are just controlling rotations
@@ -96,7 +104,7 @@ public class moveplayer : MonoBehaviour
         }
 
         if (!string.IsNullOrEmpty(keyPressed))
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "key_press"},
                 {"key_pressed", keyPressed},
@@ -119,12 +127,12 @@ public class moveplayer : MonoBehaviour
     {
         if (!rotationStartLogged) //V: prevents from logging at each single frame
         {
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "rotation_start"},
                 {"from_rotation", transform.rotation.eulerAngles.y},
                 {"target_rotation", targetRotation.eulerAngles.y},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                {"t_curr_run", CurrentRunTime()}
             });
             rotationStartLogged = true;
         }
@@ -142,11 +150,11 @@ public class moveplayer : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, y, 0);
             isRotating = false;
 
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "rotation_complete"},
                 {"final_rotation", transform.rotation.eulerAngles.y},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                {"t_curr_run", CurrentRunTime()}
             });
             rotationStartLogged = false;
         }
@@ -170,14 +178,14 @@ public class moveplayer : MonoBehaviour
     {
         if (!movementStartLogged)
         {
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "movement_start"},
                 {"from_x", transform.position.x},
                 {"from_z", transform.position.z},
                 {"target_x", targetPosition.x},
                 {"target_z", targetPosition.z},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                {"t_curr_run", CurrentRunTime()}
             });
             movementStartLogged = true;
         }
@@ -193,12 +201,12 @@ public class moveplayer : MonoBehaviour
             transform.position = targetPosition;
             isMoving = false;
 
-            DataLogger.Instance.LogEvent(new System.Collections.Generic.Dictionary<string, object>
+            LogData(new System.Collections.Generic.Dictionary<string, object>
             {
                 {"event_type", "movement_complete"},
                 {"final_x", transform.position.x},
                 {"final_z", transform.position.z},
-                {"t_curr_run", DataLogger.Instance.GetCurrentRunTime()}
+                {"t_curr_run", CurrentRunTime()}
             });
             movementStartLogged = false;
 
