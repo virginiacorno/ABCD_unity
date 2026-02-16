@@ -23,15 +23,39 @@
         <div id="unity-build-title">ABCD_unity</div>
       </div>
     </div>
+
+    <script>
+    /* Early shim: provides SendDataToJS before Unity module loads.
+       Once the .jslib plugin (UnityDataBridge) is active inside the
+       Emscripten module it will handle calls natively; this shim
+       covers the window between page-load and module-ready. */
+    (function(){
+      if (typeof window.SendDataToJS !== 'undefined') {
+        console.log('[Shim] SendDataToJS already present');
+        return;
+      }
+      window.SendDataToJS = function(payload) {
+        try {
+          var s = typeof payload === 'string' ? payload : JSON.stringify(payload);
+          console.log('[WEBGL_DATA] ' + s);
+          try {
+            var obj = JSON.parse(s);
+            window.parent.postMessage({ type: 'UNITY_DATA', data: obj }, '*');
+          } catch (e) {
+            window.parent.postMessage({ type: 'UNITY_DATA', data: s }, '*');
+          }
+        } catch (e) {
+          console.error('[Shim] SendDataToJS error', e);
+        }
+      };
+      console.log('[Shim] SendDataToJS installed');
+    })();
+    </script>
+
     <script>
       var canvas = document.querySelector("#unity-canvas");
+      var unityInstance = null; // globally accessible for postMessage handler
 
-      // Shows a temporary message banner/ribbon for a few seconds, or
-      // a permanent error message on top of the canvas if type=='error'.
-      // If type=='warning', a yellow highlight color is used.
-      // Modify or remove this function to customize the visually presented
-      // way that non-critical warnings and error messages are presented to the
-      // user.
       function unityShowBanner(msg, type) {
         var warningBanner = document.querySelector("#unity-warning");
         function updateBannerVisibility() {
@@ -63,47 +87,16 @@
         productName: "ABCD_unity",
         productVersion: "0.1.0",
         showBanner: unityShowBanner,
-        // errorHandler: function(err, url, line) {
-        //    alert("error " + err + " occurred at line " + line);
-        //    // Return 'true' if you handled this error and don't want Unity
-        //    // to process it further, 'false' otherwise.
-        //    return true;
-        // },
       };
 
-      // By default, Unity keeps WebGL canvas render target size matched with
-      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-      // Set this to false if you want to decouple this synchronization from
-      // happening inside the engine, and you would instead like to size up
-      // the canvas DOM size and WebGL render target sizes yourself.
-      // config.matchWebGLToCanvasSize = false;
-
-      // If you would like all file writes inside Unity Application.persistentDataPath
-      // directory to automatically persist so that the contents are remembered when
-      // the user revisits the site the next time, uncomment the following line:
-      // config.autoSyncPersistentDataPath = true;
-      // This autosyncing is currently not the default behavior to avoid regressing
-      // existing user projects that might rely on the earlier manual
-      // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-      // expected to change.
-
       if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-        // Mobile device style: fill the whole browser client area with the game canvas:
-
         var meta = document.createElement('meta');
         meta.name = 'viewport';
         meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
         document.getElementsByTagName('head')[0].appendChild(meta);
         document.querySelector("#unity-container").className = "unity-mobile";
         canvas.className = "unity-mobile";
-
-        // To lower canvas resolution on mobile devices to gain some
-        // performance, uncomment the following line:
-        // config.devicePixelRatio = 1;
-
-
       } else {
-        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
         canvas.style.width = "960px";
         canvas.style.height = "600px";
       }
@@ -115,19 +108,91 @@
       script.onload = () => {
         createUnityInstance(canvas, config, (progress) => {
           document.querySelector("#unity-progress-bar-full").style.width = 100 * progress + "%";
-              }).then((unityInstance) => {
-                document.querySelector("#unity-loading-bar").style.display = "none";
-                document.querySelector("#unity-fullscreen-button").onclick = () => {
-                  unityInstance.SetFullscreen(1);
-                };
+        }).then((instance) => {
+          unityInstance = instance;
+          console.log('[Unity] Instance ready');
 
-              }).catch((message) => {
-                alert(message);
-              });
-            };
+          document.querySelector("#unity-loading-bar").style.display = "none";
+          document.querySelector("#unity-fullscreen-button").onclick = () => {
+            instance.SetFullscreen(1);
+          };
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+
+      /* === PostMessage handler: receive participant info from Pavlovia parent === */
+      window.addEventListener('message', function(event) {
+        console.log('[Unity iframe] Received message:', event.data);
+
+        if (event.data && event.data.type === 'SET_PARTICIPANT') {
+          var payload = event.data.payload;
+          console.log('[Unity iframe] Setting participant info:', payload);
+
+          var trySetInfo = function() {
+            if (unityInstance) {
+              try {
+                unityInstance.SendMessage('DataLogger', 'SetParticipantInfo', payload);
+                console.log('[Unity iframe] Successfully sent participant info to Unity');
+              } catch (e) {
+                console.error('[Unity iframe] Failed to send to Unity:', e);
+              }
+            } else {
+              console.log('[Unity iframe] Unity not ready, retrying in 500ms...');
+              setTimeout(trySetInfo, 500);
+            }
+          };
+          trySetInfo();
+        }
+      });
+
+      /* === Console-log interceptor: forward completion + data events to parent === */
+      (function(){
+        var targetOrigin = '*';
+        var originalLog = console.log.bind(console);
+        var doneSent = false;
+
+        console.log = function() {
+          var args = Array.prototype.slice.call(arguments);
+          try {
+            originalLog.apply(console, args);
+
+            if (doneSent) return;
+
+            var text = args.map(function(a) {
+              return typeof a === 'object' ? JSON.stringify(a) : String(a);
+            }).join(' ');
+
+            // Detect task completion
+            if (text.indexOf('All configurations completed!') !== -1 ||
+                text.indexOf('FinishAllConfigurations: all configs completed.') !== -1 ||
+                text.indexOf('ABCD_DONE') !== -1) {
+              doneSent = true;
+              try { window.parent.postMessage('ABCD_DONE', targetOrigin); } catch (e) {}
+              originalLog('[postMessage bridge] ABCD_DONE sent to parent.');
+            }
+
+            // Forward WEBGL_DATA logs to parent
+            if (text.indexOf('[WEBGL_DATA]') !== -1) {
+              try {
+                var jsonStart = text.indexOf('{');
+                if (jsonStart !== -1) {
+                  var jsonStr = text.substring(jsonStart);
+                  var data = JSON.parse(jsonStr);
+                  window.parent.postMessage({ type: 'UNITY_DATA', data: data }, targetOrigin);
+                  originalLog('[Unity -> Parent] Sent data event:', data.event_type);
+                }
+              } catch (e) {
+                originalLog('[Unity -> Parent] Failed to parse/send data:', e);
+              }
+            }
+          } catch (e) {
+            try { originalLog('console wrapper error', e); } catch (_) {}
+          }
+        };
+      })();
 
       document.body.appendChild(script);
-
     </script>
   </body>
 </html>
