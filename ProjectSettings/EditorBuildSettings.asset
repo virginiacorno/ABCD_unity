@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/PracticeTrial.unity
     guid: 722b99e3ab83a4b77bcecdb88927240c
   - enabled: 1
-    path: Assets/Scenes/ClassicTask.unity
+    path: Assets/Scenes/Part 1.unity
     guid: 8e1aecbd658144f5c8b6b6c9c82ea0ef
   - enabled: 1
     path: Assets/Scenes/CueTask.unity

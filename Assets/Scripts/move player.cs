@@ -3,10 +3,9 @@ using UnityEngine.InputSystem;
 public class moveplayer : MonoBehaviour
 {
     private float _rotationFrom;
-    private Vector3 _moveFrom;
 
     public float gridStepSize = 10.3f;
-    public float moveSpeed = 7.0f;
+    public float moveSpeed = 7.0f; //V: modify later, should go back to 3f to ensure 2 TRs in shortest path
     public float rotationSpeed = 100f;
 
     public rewardManager rewardManager;
@@ -21,12 +20,16 @@ public class moveplayer : MonoBehaviour
     private bool isMoving = false;
     private bool isRotating = false;
     
-    //V: variables to keep track of logging
-    private bool rotationStartLogged = false;
-    private bool movementStartLogged = false;
 
     //V: step count for feedback
     public int stepCount = 0;
+
+    //V: time variables for logging
+    private float _tStepPressGlobal;
+    private float _tStepPressCurrRun;
+    private float _rotationPressGlobal;
+    private float _rotationPressCurrRun;
+    private float repStartTime;
     
     void Start()
     {
@@ -74,6 +77,9 @@ public class moveplayer : MonoBehaviour
 
         if (keyboard.upArrowKey.wasPressedThisFrame) //V: up key is the only one allowing to move, the other ones are just controlling rotations
         {
+            _tStepPressGlobal = Time.time - TRPulse.Instance.t0; //V: time since experiment started (i.e., t0 detected)
+            _tStepPressCurrRun = Time.time - repStartTime;
+
             Vector3 potentialTarget = transform.position + (transform.forward * gridStepSize);
             if (WithinBounds(potentialTarget))
             {
@@ -86,25 +92,32 @@ public class moveplayer : MonoBehaviour
         }
         else if (keyboard.downArrowKey.wasPressedThisFrame)
         {
+            _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
+            _rotationPressCurrRun = Time.time - repStartTime;
+
             SetTarget(180f);
             CameraController.DisableMiniMap();
             keyPressed = "down";
         }
         else if (keyboard.leftArrowKey.wasPressedThisFrame)
         {
+            _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
+            _rotationPressCurrRun = Time.time - repStartTime;
+
             SetTarget(-90f);
             CameraController.DisableMiniMap();
             keyPressed = "left";
         }
         else if (keyboard.rightArrowKey.wasPressedThisFrame)
         {
+            _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
+            _rotationPressCurrRun = Time.time - repStartTime;
+
             SetTarget(90f);
             CameraController.DisableMiniMap();
             keyPressed = "right";
         }
 
-        if (!string.IsNullOrEmpty(keyPressed))
-            WebDataLogger.Instance.LogKeyPressEvent(keyPressed, oldPosition, rewardManager.GetCurrentConfigIndex(), rewardManager.repsCompleted);
     }
 
     void SetTarget(float relativeYRotation) //V: calculate rotation target relative to current position and set isRotating to true
@@ -117,27 +130,29 @@ public class moveplayer : MonoBehaviour
 
     void RotateToTarget()
     {
-        if (!rotationStartLogged) //V: prevents from logging at each single frame
-        {
-            WebDataLogger.Instance.LogRotation("start", _rotationFrom, targetRotation.eulerAngles.y);
-            rotationStartLogged = true;
-        }
-
         transform.rotation = Quaternion.RotateTowards(
             transform.rotation,
             targetRotation,
-            rotationSpeed * Time.deltaTime 
+            rotationSpeed * Time.deltaTime
         );
 
         if (Quaternion.Angle(transform.rotation, targetRotation) < 0.01f)
         {
-            //V; ensure rotation is 90 degree multiple
             float y = Mathf.Round(targetRotation.eulerAngles.y / 90f) * 90f;
             transform.rotation = Quaternion.Euler(0, y, 0);
             isRotating = false;
 
-            WebDataLogger.Instance.LogRotation("complete", _rotationFrom, transform.rotation.eulerAngles.y);
-            rotationStartLogged = false;
+            Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
+            DataLogger.Instance.LogRotation(
+                _rotationPressGlobal, _rotationPressCurrRun,
+                _rotationFrom, transform.rotation.eulerAngles.y,
+                transform.position.x, transform.position.z,
+                rewPos.x, rewPos.z,
+                rewardManager.GetCurrentState(),
+                rewardManager.config.IsBackw ? "backw" : "forw",
+                rewardManager.repsCompleted,
+                rewardManager.GetCurrentConfigName()
+            );
         }
     }
 
@@ -157,26 +172,31 @@ public class moveplayer : MonoBehaviour
     
     void MoveToTarget()
     {
-        if (!movementStartLogged)
-        {
-            _moveFrom = transform.position;
-            WebDataLogger.Instance.LogMovementEvent("start", _moveFrom, targetPosition);
-            movementStartLogged = true;
-        }
-
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPosition,
-            moveSpeed * Time.deltaTime //V: Time.deltaTime = time since last frame; ensures moving time is constant despite ≠ computers may have ≠ updating speed
+            moveSpeed * Time.deltaTime
         );
-        
-        if (Vector3.Distance(transform.position, targetPosition) < 0.01f) //V: if the distance between current and target position = 0.01, then snap to target 
+
+        if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
         {
             transform.position = targetPosition;
             isMoving = false;
 
-            WebDataLogger.Instance.LogMovementEvent("complete", _moveFrom, transform.position);
-            movementStartLogged = false;
+            float tStepEndGlobal = Time.time - TRPulse.Instance.t0;
+            Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
+
+            DataLogger.Instance.LogStep(
+                _tStepPressGlobal, _tStepPressCurrRun,
+                0f,
+                transform.position.x, transform.position.z,
+                tStepEndGlobal,
+                rewPos.x, rewPos.z,
+                rewardManager.GetCurrentState(),
+                rewardManager.config.IsBackw ? "backw" : "forw",
+                rewardManager.repsCompleted,
+                rewardManager.GetCurrentConfigName()
+            );
 
             rewardManager.RewardFound(transform.position);
         }

@@ -201,16 +201,17 @@ public class rewardManager : MonoBehaviour
             bool atRewardLocation = (distance < 0.01f);
             
             // log all space bar presses
-            WebDataLogger.Instance.LogRewardCheck(
-                playerPosition,
-                currReward.transform.position,
-                ((char)('A' + nextRewardIdx)).ToString(),
-                config.configName,
+            DataLogger.Instance.LogRewardCheck(
+                playerPosition.x, playerPosition.z,
+                currReward.transform.position.x, currReward.transform.position.z,
                 distance,
+                GetCurrentState(),
+                config.IsBackw ? "backw" : "forw",
+                repsCompleted,
+                GetCurrentConfigName(),
                 atRewardLocation,
-                atRewardLocation ? player.stepCount : 0,
-                atRewardLocation ? shortestPath : 0,
-                atRewardLocation ? player.stepCount == shortestPath : false
+                atRewardLocation ? Time.time - TRPulse.Instance.t0 : 0f,
+                0f
             );
             
             // Only process reward if at correct location
@@ -231,8 +232,6 @@ public class rewardManager : MonoBehaviour
                     lastShownRewardIdx = returnIdx;
 
                     player.inputEnabled = false;
-                    WebDataLogger.Instance.LogRepetitionComplete(currentConfigIdx, repsCompleted, _trialsPerTask);
-
                     repsCompleted++;
 
                     Invoke("CompleteTrial", 0.5f);
@@ -367,29 +366,11 @@ public class rewardManager : MonoBehaviour
         else
             player.inputEnabled = true;
 
-        WebDataLogger.Instance.LogTrialStartEvent(
-            currentConfigIdx,
-            GetCurrentConfigName(),
-            isABCScene ? "ABC" : "ABCD",
-            isABCScene ? "A-B-C" : "A-B-C-D",
-            repsCompleted
-        );
-
         Debug.Log($"Starting {config.configName}");
     }
     
     void ResetTrial()
     {
-        //V: add log that A has been found in the current trial (sanity check: time should be the same as logging of immeditely preceding row)
-        WebDataLogger.Instance.LogRewardEvent(
-            "onset",
-            currentRewardObjects[0].transform.position,
-            "A",
-            0,
-            currentConfigIdx,
-            "A"
-        );
-        
         HideAllRewards();
         HideCue();
         nextRewardIdx = config.IsBackw ? config.rewardPositions.Count - 2 : 1; // V: next reward to find is B, so transition for zero-shot is included in each trial
@@ -416,15 +397,6 @@ public class rewardManager : MonoBehaviour
             Debug.Log($"Showing reward at index {index}, name: {currentRewardObjects[index].name}");
             //Debug.Log($"Renderer before: {currentRewardObjects[index].GetComponent<Renderer>().enabled}");
 
-            WebDataLogger.Instance.LogRewardEvent(
-                "onset",
-                currentRewardObjects[index].transform.position,
-                ((char)('A' + index)).ToString(),
-                index,
-                currentConfigIdx,
-                ((char)('A' + index)).ToString()
-            );
-            
             //currentRewardObjects[index].GetComponent<Renderer>().enabled = true;
             currentRewardObjects[index].SetActive(true);
             Vector3 dir = -player.transform.forward;
@@ -443,15 +415,6 @@ public class rewardManager : MonoBehaviour
     {
         if (index >= 0 && index < currentRewardObjects.Length && currentRewardObjects[index] != null)
         {
-            WebDataLogger.Instance.LogRewardEvent(
-                "offset",
-                currentRewardObjects[index].transform.position,
-                ((char)('A' + index)).ToString(),
-                index,
-                currentConfigIdx,
-                ((char)('A' + index)).ToString()
-            );
-
             //currentRewardObjects[index].GetComponent<Renderer>().enabled = false;
             currentRewardObjects[index].SetActive(false);
         }
@@ -489,7 +452,6 @@ public class rewardManager : MonoBehaviour
         if (cueObject != null)
         {
             cueObject.SetActive(true);
-            WebDataLogger.Instance.LogCue(currentConfigIdx, repsCompleted);
         }
         //V: block the player for 2 seconds so sure we see the cue
         yield return new WaitForSeconds(2f);
@@ -547,5 +509,17 @@ public class rewardManager : MonoBehaviour
         return Mathf.RoundToInt(
             (Mathf.Abs(from.x - to.x) + Mathf.Abs(from.z - to.z)) / 10.3f //V: divide by step size to get number of my steps needed
         );
+    }
+
+    //V; helper functions to determine current state and position of the reward to find for logging
+    public string GetCurrentState()
+    {
+        int idx = config.IsBackw ? nextRewardIdx : nextRewardIdx;
+        return ((char)('A' + nextRewardIdx)).ToString();
+    }
+
+    public Vector3 GetCurrentRewardPosition()
+    {
+        return GetRewardWorldPosition(nextRewardIdx);
     }
 }

@@ -42,13 +42,6 @@ public class TaskPackageManager : MonoBehaviour
         AssignAndLoadPackage();
     }
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        if (WebDataLogger.Instance != null)
-            WebDataLogger.Instance.LogPackageAssignment(AssignedPackageNumber, GetPackageId());
-    }
-
     void AssignAndLoadPackage()
     {
         AssignedPackageNumber = Random.Range(1, 4); //V: min and max values are integers so max value is exclusive

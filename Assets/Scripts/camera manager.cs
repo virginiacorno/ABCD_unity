@@ -50,8 +50,6 @@ public class CameraManager : MonoBehaviour, ICameraController
         //V: Load the new configuration in reward manager
         rewardManager.LoadConfiguration(configIndex);
 
-        WebDataLogger.Instance.LogConfigurationStart(configIndex, rewardManager.GetCurrentConfigName());
-        
         //V: Hide player and disable movement initially
         player.GetComponent<Renderer>().enabled = false;
         player.GetComponent<moveplayer>().enabled = false;
@@ -89,13 +87,10 @@ public class CameraManager : MonoBehaviour, ICameraController
     
     IEnumerator ShowRewardSequence()
     {
-        WebDataLogger.Instance.LogMemorizationStart(rewardManager.GetCurrentConfigName(), memorizationRepetitions);
-
         //V: Show sequence multiple times
         for (int repetition = 0; repetition < memorizationRepetitions; repetition++)
         {
             Debug.Log($"Showing sequence {repetition + 1}/{memorizationRepetitions}");
-            WebDataLogger.Instance.LogMemorizationRepetition(repetition, rewardDisplayTime[repetition], pauseBetweenRewards[repetition]);
 
             //V: Show each reward in order
             for (int i = 0; i < rewardManager.GetCurrentRewardCount(); i++)
@@ -104,18 +99,12 @@ public class CameraManager : MonoBehaviour, ICameraController
                 if (rewardManager.GetCurrentConfigName().StartsWith("backw"))
                 {
                     backwWarning.SetActive(true);
-
-                    WebDataLogger.Instance.LogBackwardWarning("onset", rewardManager.GetCurrentConfigName());
                 }
-
-                WebDataLogger.Instance.LogMemorizationReward("reward_onset", ((char)('A' + i)).ToString(), i, repetition);
 
                 rewardManager.ShowReward(i);
                 Debug.Log($"Reward {i + 1}/4");
 
                 yield return new WaitForSeconds(rewardDisplayTime[repetition]);
-
-                WebDataLogger.Instance.LogMemorizationReward("reward_offset", ((char)('A' + i)).ToString(), i, repetition);
 
                 rewardManager.HideReward(i);
 
@@ -131,8 +120,6 @@ public class CameraManager : MonoBehaviour, ICameraController
 
         Debug.Log("Memorization complete! Transitioning to first-person view...");
 
-        WebDataLogger.Instance.LogMemorizationComplete();
-
         yield return new WaitForSeconds(1f);
 
         //V: Smooth transition instead of instant swap
@@ -142,15 +129,14 @@ public class CameraManager : MonoBehaviour, ICameraController
     public IEnumerator TransitionToFirstPerson()
     {
         //V: disable tbackwarning warning and log it
-        if (backwWarning.activeSelf) //V: de-activate the backw warning and log it (if it was active)
+        if (backwWarning.activeSelf)
         {
-            WebDataLogger.Instance.LogBackwardWarning("offset", rewardManager.GetCurrentConfigName());
             backwWarning.SetActive(false);
         }
 
         //V: Show the player during the transition
         player.GetComponent<Renderer>().enabled = true;
-        WebDataLogger.Instance.LogCameraTransition("start", player.transform.position);
+        DataLogger.Instance.LogCameraTransition("start", "top_down", "first_person");
 
         //V: Read start position/rotation from the minimap camera (set in Inspector)
         Vector3 startPos = miniMapCamera.transform.position;
@@ -181,7 +167,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         miniMapCamera.transform.position = startPos;
         miniMapCamera.transform.rotation = startRot;
 
-        WebDataLogger.Instance.LogCameraTransition("complete", player.transform.position);
+        DataLogger.Instance.LogCameraTransition("complete", "top_down", "first_person");
         StartGamePhase();
     }
     
@@ -193,8 +179,6 @@ public class CameraManager : MonoBehaviour, ICameraController
         player.GetComponent<moveplayer>().enabled = true;
         player.GetComponent<moveplayer>().inputEnabled = true;
 
-        WebDataLogger.Instance.LogGamePhaseStart(player.transform.position, rewardManager.GetCurrentConfigName(), rewardManager.GetCurrentConfigIndex());
-        
         Debug.Log("Find the rewards in order: A → B → C → D");
     }
 

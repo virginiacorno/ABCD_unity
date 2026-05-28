@@ -12,8 +12,8 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
     //V: update the behaviour of buttons
     public override void OnInstructionButton()
     {
-        WebDataLogger.Instance.LogScreenEvent("instruction", "button_press");
-        WebDataLogger.Instance.LogScreenEvent("instruction", "offset");
+        DataLogger.Instance.LogScreen("instruction", "button_press");
+        DataLogger.Instance.LogScreen("instruction", "offset");
         movementPanel.SetActive(false);
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -25,8 +25,8 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 
     public override void OnMovementButton()
     {
-        WebDataLogger.Instance.LogScreenEvent("movement", "button_press");
-        WebDataLogger.Instance.LogScreenEvent("movement", "offset");
+        DataLogger.Instance.LogScreen("movement", "button_press");
+        DataLogger.Instance.LogScreen("movement", "offset");
         movementPanel.SetActive(false);
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -37,8 +37,8 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 
     public override void OnFeedbackButton()
     {
-        WebDataLogger.Instance.LogScreenEvent("feedback", "button_press");
-        WebDataLogger.Instance.LogScreenEvent("feedback", "offset");
+        DataLogger.Instance.LogScreen("feedback", "button_press");
+        DataLogger.Instance.LogScreen("feedback", "offset");
         movementPanel.SetActive(false);
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -49,8 +49,8 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 
     public override void OnContinueButton()
     {
-        WebDataLogger.Instance.LogScreenEvent("new_sequence", "button_press");
-        WebDataLogger.Instance.LogScreenEvent("new_sequence", "offset");
+        DataLogger.Instance.LogScreen("new_sequence", "button_press");
+        DataLogger.Instance.LogScreen("new_sequence", "offset");
         instructionPanel.SetActive(false);
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);

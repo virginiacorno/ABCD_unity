@@ -20,7 +20,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        WebDataLogger.Instance.LogScreenEvent("instruction", "onset");
+        DataLogger.Instance.LogScreen("instruction", "onset");
     }
 
     public void ShowMovementInstruction()
@@ -30,7 +30,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        WebDataLogger.Instance.LogScreenEvent("movement", "onset");
+        DataLogger.Instance.LogScreen("movement", "onset");
     }
 
     public void ShowFeedback(int optimal, int total)
@@ -43,7 +43,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         movementPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        WebDataLogger.Instance.LogScreenEvent("feedback", "onset");
+        DataLogger.Instance.LogScreen("feedback", "onset");
     }
 
     public void NewSequenceInstructions()
@@ -53,7 +53,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
         Time.timeScale = 0f;
-        WebDataLogger.Instance.LogScreenEvent("new_sequence", "onset");
+        DataLogger.Instance.LogScreen("new_sequence", "onset");
     }
 
     public abstract void OnInstructionButton();
