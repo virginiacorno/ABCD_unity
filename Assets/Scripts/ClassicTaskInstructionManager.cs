@@ -3,10 +3,17 @@ using UnityEngine;
 public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 {
     public CameraManager cameraManager;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public GameObject endScreenPanel;
+    public GameObject backwardWarningPanel;
+
     void Start()
     {
-        ShowInstruction(); //V: call this as it is bc working mechanism already accurate in other script
+        instructionPanel.SetActive(false);
+        movementPanel.SetActive(false);
+        feedbackPanel.SetActive(false);
+        newSeqPanel.SetActive(false);
+        endScreenPanel?.SetActive(false);
+        backwardWarningPanel?.SetActive(false);
     }
 
     //V: update the behaviour of buttons

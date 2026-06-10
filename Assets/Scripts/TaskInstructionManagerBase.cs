@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UI;
 using TMPro;
 
 //V: script creates and manages instruction, new seqeunces and end panels used in both task variants + creates button object
@@ -12,6 +13,16 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
     public GameObject newSeqPanel;
     public rewardManager rewardManager;
     public moveplayer player;
+    public Button instructionButton;
+
+    public void ShowInstructionPanel()
+    {
+        instructionPanel.SetActive(true);
+        movementPanel.SetActive(false);
+        feedbackPanel.SetActive(false);
+        newSeqPanel.SetActive(false);
+        if (instructionButton != null) instructionButton.interactable = false;
+    }
 
     public void ShowInstruction()
     {
@@ -19,6 +30,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
+        if (instructionButton != null) instructionButton.interactable = true;
         Time.timeScale = 0f;
         DataLogger.Instance.LogScreen("instruction", "onset");
     }

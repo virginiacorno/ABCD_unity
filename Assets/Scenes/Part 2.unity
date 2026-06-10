@@ -5965,6 +5965,53 @@ RectTransform:
   m_AnchoredPosition: {x: 5.4, y: 1}
   m_SizeDelta: {x: 100, y: 5}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1616325681
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1616325683}
+  - component: {fileID: 1616325682}
+  m_Layer: 0
+  m_Name: TRPulse
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1616325682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1616325681}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c1fb8b1abb20485795c7d7ea9a8d1ba, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TRPulse
+  instructionManager: {fileID: 0}
+  t0: 0
+  counter: 0
+--- !u!4 &1616325683
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1616325681}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 993.5199, y: 1003.8199, z: 63.00082}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1681611830
 GameObject:
   m_ObjectHideFlags: 0
@@ -6713,7 +6760,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 392ed3fe9ba0e440dac43b04fdcdf793, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ParticipantInfoReader
-  dataLogger: {fileID: 1794326261}
 --- !u!1 &1832513488
 GameObject:
   m_ObjectHideFlags: 0
@@ -7031,13 +7077,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c5e4cc4586714f079c432bb4e621ac5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::rewardManager
-  configurationFile: {fileID: 4900000, guid: 9a6c3dbce9a89473ab412109d0ee99fa, type: 3}
   rewardPrefab: {fileID: 8944818978998613366, guid: 724d237596c0e5f4e96db63a4516d303, type: 3}
   instructionManager: {fileID: 1061503323}
   repsCompleted: 0
-  cueObject: {fileID: 150348452}
   player: {fileID: 918918312}
-  isPractice: 0
 --- !u!4 &1972259392
 Transform:
   m_ObjectHideFlags: 0
@@ -7425,3 +7468,4 @@ SceneRoots:
   - {fileID: 692044527}
   - {fileID: 940627185}
   - {fileID: 1024137806}
+  - {fileID: 1616325683}

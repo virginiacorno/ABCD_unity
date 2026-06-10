@@ -33,7 +33,8 @@ public class DataLogger : MonoBehaviour
         this.participantId = participantId;
         this.taskHalf = taskHalf;
 
-        string dir = Path.Combine(Application.persistentDataPath, participantId, "beh");
+        string homeDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
+        string dir = Path.Combine(homeDir, "ABCD_data", participantId, "beh");
         Directory.CreateDirectory(dir);
 
         string path = Path.Combine(dir, $"{participantId}_fmri_pt{taskHalf}.csv");
@@ -78,6 +79,7 @@ public class DataLogger : MonoBehaviour
 
     private void WriteRow(LogRow r)
     {
+        if (!isInitialised) return;
         writer.WriteLine(
             $"{r.eventType},{r.participantId},{r.taskHalf},{r.tGlobal}," +
             $"{r.screenName},{r.phase}," +

@@ -65,7 +65,6 @@ public class CameraManager : MonoBehaviour, ICameraController
     
     public void SetupMemorizationCamera()
     {
-        rewardManager.HideCue();
         backwWarning.SetActive(false);
         firstPersonCamera.enabled = false;
         miniMapCamera.enabled = true;

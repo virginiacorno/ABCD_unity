@@ -1,5 +1,4 @@
 using UnityEngine;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.InputSystem; 
 using UnityEngine.SceneManagement;
@@ -7,28 +6,22 @@ using UnityEngine.SceneManagement;
 public class rewardManager : MonoBehaviour
 {
     
-    [Header("Configuration File")]
-    public TextAsset configurationFile;
-    
     [Header("Reward Prefab")]
     public GameObject rewardPrefab;
 
     [Header("UI References")]
     public TaskInstructionManagerBase instructionManager;
-    
+
     private List<TaskConfig> _activeTasks;
     private int _trialsPerTask;
 
-    private GameObject[] currentRewardObjects; //V: array containing sequence of rewards
+    private GameObject[] currentRewardObjects;
     private int currentConfigIdx = 0;
     private int nextRewardIdx = 0;
     public int repsCompleted = 0;
     private int lastShownRewardIdx = -1;
-    public GameObject cueObject;
     public moveplayer player;
-    public bool isPractice = false;
     private bool returnToA = false;
-    private bool isABCScene;
     public TaskConfig config => _activeTasks[currentConfigIdx];
 
     //V: variabke storing shortest path 
@@ -36,15 +29,13 @@ public class rewardManager : MonoBehaviour
     private int totalSubpaths;
     private int optimalSubpaths;
 
-    void Awake() //V: Awake() takes precedence over any Start() in any of the scripts, so we make sure all rewards are hidden before starting
+    void Awake()
     {
-        isABCScene = SceneManager.GetActiveScene().name == "CueTask";
         LoadTasks();
 
         if (_activeTasks != null && _activeTasks.Count > 0)
         {
             LoadConfiguration(0);
-            HideCue();
             Debug.Log("Awake complete - rewards created and hidden");
         }
         else
@@ -64,41 +55,18 @@ public class rewardManager : MonoBehaviour
 
     void LoadTasks()
     {
-        Debug.Log($"[rewardManager] isPractice={isPractice}, PackageManager={TaskPackageManager.Instance != null}, isABCScene={isABCScene}");
-
-        if (isPractice)
-        {
-            if (configurationFile == null)
-            {
-                Debug.LogError("Configuration file not assigned!");
-                return;
-            }
-            try
-            {
-                var data = JsonUtility.FromJson<PackageData>(configurationFile.text);
-                Debug.Log($"Practice tasks loaded: {data?.tasks?.Count}");  
-                _activeTasks = data.tasks;
-                _trialsPerTask = data.trialsPerTask;
-                Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks from file");
-            }
-            catch (System.Exception e)
-            {
-                Debug.LogError($"Failed to load configuration file: {e.Message}");
-            }
-        }
-        else if (TaskPackageManager.Instance != null)
-        {
-            int targetPart = isABCScene ? 2 : 1;
-            _activeTasks = targetPart == 1
-                ? TaskPackageManager.Instance.GetPart1Tasks()
-                : TaskPackageManager.Instance.GetPart2Tasks();
-            _trialsPerTask = TaskPackageManager.Instance.Data.trialsPerTask;
-            Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks for part {targetPart}");
-        }
-        else
+        if (TaskPackageManager.Instance == null)
         {
             Debug.LogError("[rewardManager] No TaskPackageManager found!");
+            return;
         }
+
+        bool isPart2 = SceneManager.GetActiveScene().name == "Part 2";
+        _activeTasks = isPart2
+            ? TaskPackageManager.Instance.GetPart2Tasks()
+            : TaskPackageManager.Instance.GetPart1Tasks();
+        _trialsPerTask = TaskPackageManager.Instance.Data.trialsPerTask;
+        Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks for {(isPart2 ? "Part 2" : "Part 1")}");
     }
 
 
@@ -178,8 +146,7 @@ public class rewardManager : MonoBehaviour
     
     public bool RewardFound(Vector3 playerPosition)
     {
-        if (isPractice) return false;
-
+        if (_activeTasks == null) return false;
         Debug.Log($"Player position: {playerPosition}");
         Debug.Log($"nextRewardIdx: {nextRewardIdx}");
         int rewardsToCollect = config.rewardPositions.Count;
@@ -257,15 +224,7 @@ public class rewardManager : MonoBehaviour
                     Debug.Log($"shortest path = {shortestPath}");
                 }
 
-                if (config.configName.StartsWith("ABC") && !config.configName.StartsWith("ABCD"))
-                {
-                    if (repsCompleted != 0 && nextRewardIdx == 1)
-                    {
-                        StartCoroutine(ShowCue());
-                    }
-                }            
-
-                // V: if we have collected last reward (C/D/A), then return to A to complete the trial
+                // V: if we have collected last reward (D/A), then return to A to complete the trial
                 if (nextRewardIdx >= rewardsToCollect || nextRewardIdx < 0)
                 {
                     Debug.Log("return to A");
@@ -354,17 +313,12 @@ public class rewardManager : MonoBehaviour
 
     public void StartNextConfigForFreeNav()
     {
-        // Reset for the new configuration
         HideAllRewards();
         nextRewardIdx = GetStartIndex();
         lastShownRewardIdx = -1;
 
         player.CameraController.SetupGameplayCameras();
-
-        if (isABCScene && config.configName.StartsWith("ABC") && !config.configName.StartsWith("ABCD"))
-            StartCoroutine(ShowCue());
-        else
-            player.inputEnabled = true;
+        player.inputEnabled = true;
 
         Debug.Log($"Starting {config.configName}");
     }
@@ -372,7 +326,6 @@ public class rewardManager : MonoBehaviour
     void ResetTrial()
     {
         HideAllRewards();
-        HideCue();
         nextRewardIdx = config.IsBackw ? config.rewardPositions.Count - 2 : 1; // V: next reward to find is B, so transition for zero-shot is included in each trial
         lastShownRewardIdx = -1;
         returnToA = false;
@@ -435,59 +388,9 @@ public class rewardManager : MonoBehaviour
         }
     }
 
-    public void HideCue()
-    {
-        if (cueObject != null)
-        {
-            cueObject.SetActive(false);
-        }
-    }
-
-    IEnumerator ShowCue()
-    {
-        //V: block the player
-        player.inputEnabled = false;
-
-        //V: show cue and log it 
-        if (cueObject != null)
-        {
-            cueObject.SetActive(true);
-        }
-        //V: block the player for 2 seconds so sure we see the cue
-        yield return new WaitForSeconds(2f);
-
-        //V: hide cue and re-enable movement
-        HideCue();
-        player.inputEnabled = true;
-
-    }
-
     public Vector3 GetStartPosition()
     {
-        if (isABCScene)
-        {
-            Vector3[] allGridPositions = new Vector3[]
-            {
-                new Vector3(-5.3f, 1f, 5f),    new Vector3(-5.3f, 1f, 15.3f), new Vector3(-5.3f, 1f, 25.6f),
-                new Vector3(5f,    1f, 5f),    new Vector3(5f,    1f, 15.3f), new Vector3(5f,    1f, 25.6f),
-                new Vector3(15.3f, 1f, 5f),    new Vector3(15.3f, 1f, 15.3f), new Vector3(15.3f, 1f, 25.6f)
-            };
-
-            List<Vector3> rewardPositions = new List<Vector3>();
-            foreach (var rp in config.rewardPositions)
-                rewardPositions.Add(rp.ToVector3());
-
-            List<Vector3> validPositions = new List<Vector3>();
-            foreach (var pos in allGridPositions)
-            {
-                if (!rewardPositions.Contains(pos))
-                    validPositions.Add(pos);
-            }
-
-            return validPositions[Random.Range(0, validPositions.Count)];
-        }
-
-        int lastRewardIdx = config.IsBackw ? 0 : config.rewardPositions.Count - 1; //V: A (index 0) if backwards trial, C (index 2) if ABC and D (index 3) if ABCD
+        int lastRewardIdx = config.IsBackw ? 0 : config.rewardPositions.Count - 1;
         return config.rewardPositions[lastRewardIdx].ToVector3();
     }
 

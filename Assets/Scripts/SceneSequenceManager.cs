@@ -11,8 +11,8 @@ public class SceneSequenceManager : MonoBehaviour
      public static SceneSequenceManager Instance { get; private set; }
 
     private const string practicePhase = "PracticeTrial";
-    private const string taskPhase = "ClassicTask";
-    private const string cuePhase = "CueTask";
+    private const string taskPhase = "Part 1";
+    private const string cuePhase = "Part 2";
 
     [Header("Player State")]
     public int instructionCorrectStreak = 0;
