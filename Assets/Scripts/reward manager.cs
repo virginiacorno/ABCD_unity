@@ -28,6 +28,8 @@ public class rewardManager : MonoBehaviour
     private int shortestPath;
     private int totalSubpaths;
     private int optimalSubpaths;
+    private int _currentPart;
+
 
     void Awake()
     {
@@ -35,14 +37,15 @@ public class rewardManager : MonoBehaviour
 
         if (_activeTasks != null && _activeTasks.Count > 0)
         {
-            LoadConfiguration(0);
-            Debug.Log("Awake complete - rewards created and hidden");
+            string firstConfig = TaskPackageManager.Instance.GetNextConfigName(_currentPart);
+            currentConfigIdx = _activeTasks.FindIndex(t => t.configName == firstConfig);
         }
         else
         {
             Debug.LogError("No configurations loaded!");
         }
     }
+
 
     void Start()
     {
@@ -65,6 +68,7 @@ public class rewardManager : MonoBehaviour
         _activeTasks = isPart2
             ? TaskPackageManager.Instance.GetPart2Tasks()
             : TaskPackageManager.Instance.GetPart1Tasks();
+        _currentPart = isPart2 ? 2 : 1;
         _trialsPerTask = TaskPackageManager.Instance.Data.trialsPerTask;
         Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks for {(isPart2 ? "Part 2" : "Part 1")}");
     }
@@ -147,6 +151,7 @@ public class rewardManager : MonoBehaviour
     public bool RewardFound(Vector3 playerPosition)
     {
         if (_activeTasks == null) return false;
+        if (currentRewardObjects == null) return false;
         Debug.Log($"Player position: {playerPosition}");
         Debug.Log($"nextRewardIdx: {nextRewardIdx}");
         int rewardsToCollect = config.rewardPositions.Count;
@@ -267,10 +272,17 @@ public class rewardManager : MonoBehaviour
 
         if (repsCompleted >= _trialsPerTask)  
         {
-            if (currentConfigIdx < _activeTasks.Count - 1)
+            if (TaskPackageManager.Instance.HasMoreTasks(_currentPart))
             {
                 Debug.Log($"{_activeTasks[currentConfigIdx].configName} complete!");
-                currentConfigIdx++;
+                string nextConfig = TaskPackageManager.Instance.GetNextConfigName(_currentPart);
+                currentConfigIdx = _activeTasks.FindIndex(t => t.configName == nextConfig);
+                if (currentConfigIdx == -1)
+                {
+                    Debug.LogError($"[rewardManager] Could not find config in _activeTasks!");
+                    return;
+                }
+                    
                 repsCompleted = 0;
 
                 CameraManager camManager = FindFirstObjectByType<CameraManager>();

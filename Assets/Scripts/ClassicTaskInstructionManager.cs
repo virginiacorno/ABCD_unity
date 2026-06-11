@@ -39,7 +39,7 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 1f;
-        cameraManager.StartNewConfiguration(0);
+        cameraManager.StartNewConfiguration(rewardManager.GetCurrentConfigIndex());
     }
 
     public override void OnFeedbackButton()

@@ -26,6 +26,7 @@ public class moveplayer : MonoBehaviour
 
     //V: time variables for logging
     private float _tStepPressGlobal;
+    private Vector3 _positionAtPress;
     private float _tStepPressCurrRun;
     private float _rotationPressGlobal;
     private float _rotationPressCurrRun;
@@ -79,6 +80,7 @@ public class moveplayer : MonoBehaviour
         {
             _tStepPressGlobal = Time.time - TRPulse.Instance.t0; //V: time since experiment started (i.e., t0 detected)
             _tStepPressCurrRun = Time.time - repStartTime;
+            _positionAtPress = transform.position;
 
             Vector3 potentialTarget = transform.position + (transform.forward * gridStepSize);
             if (WithinBounds(potentialTarget))
@@ -189,6 +191,7 @@ public class moveplayer : MonoBehaviour
             DataLogger.Instance.LogStep(
                 _tStepPressGlobal, _tStepPressCurrRun,
                 0f,
+                _positionAtPress.x, _positionAtPress.z,
                 transform.position.x, transform.position.z,
                 tStepEndGlobal,
                 rewPos.x, rewPos.z,

@@ -13,9 +13,10 @@ public class GridPosition
 public class TaskConfig
 {
     public string configName;
+    public string taskType;
     public int taskPart;
     public List<GridPosition> rewardPositions;
-    public bool IsBackw => configName != null && configName.StartsWith("backw");
+    public bool IsBackw => taskType != null && taskType.StartsWith("backw");
 }
 
 [System.Serializable]
@@ -31,34 +32,83 @@ public class PackageData
 public class TaskPackageManager : MonoBehaviour
 {
     public static TaskPackageManager Instance { get; private set; } //V: { get; private set; } ensures anyone can read BUT only code in taskPackagemanager class can write
-    public int AssignedPackageNumber { get; private set; }
     public PackageData Data { get; private set; }
+    private List<string> _part1Order;
+    private List<string> _part2Order;
+    private int _part1Index = 0;
+    private int _part2Index = 0;
 
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }
         Instance = this;
         DontDestroyOnLoad(gameObject);
-        AssignAndLoadPackage();
+
+        if (Display.displays.Length > 1) //V: activate second display
+        {
+            Display.displays[1].Activate(3840, 2160, 120);
+            Application.targetFrameRate = 120;
+        }
+            
+
+        LoadTasks();
     }
 
-    void AssignAndLoadPackage()
+    void LoadTasks()
     {
-        AssignedPackageNumber = Random.Range(1, 4); //V: min and max values are integers so max value is exclusive
-        string resourcePath = $"Tasks/p{AssignedPackageNumber:D2}";
-        TextAsset packageFile = Resources.Load<TextAsset>(resourcePath);
+        string resourcePath = "Tasks/fMRI_tasks";
+        TextAsset taskFile = Resources.Load<TextAsset>(resourcePath);
 
-        if (packageFile == null)
+        if (taskFile == null)
         {
             Debug.LogError($"[PackageManager] Could not load: Resources/{resourcePath}");
             return;
         }
 
-        Data = JsonUtility.FromJson<PackageData>(packageFile.text);
-        Debug.Log($"[PackageManager] Assigned package {AssignedPackageNumber}, loaded {Data.tasks.Count} tasks");
+        Data = JsonUtility.FromJson<PackageData>(taskFile.text);
+        Debug.Log($"[PackageManager] Loaded {Data.tasks.Count} tasks");
+        GenerateTaskOrders();
     }
+
+    void GenerateTaskOrders()
+    {
+        _part1Order = Data.tasks
+            .Where(t => t.taskPart == 1)
+            .Select(t => t.configName)
+            .Distinct()
+            .OrderBy(_ => Random.value)
+            .ToList();
+
+        _part2Order = Data.tasks
+            .Where(t => t.taskPart == 2)
+            .Select(t => t.configName)
+            .Distinct()
+            .OrderBy(_ => Random.value)
+            .ToList();
+
+        Debug.Log($"[PackageManager] Part 1 order: {string.Join(", ", _part1Order)}");
+        Debug.Log($"[PackageManager] Part 2 order: {string.Join(", ", _part2Order)}");
+    }
+
+    public string GetNextConfigName(int part)
+    {
+        Debug.Log($"[PackageManager] GetNextConfigName(part={part}) called from:\n{System.Environment.StackTrace}");
+        if (part == 1)
+        {
+            if (_part1Index >= _part1Order.Count) return null;
+            return _part1Order[_part1Index++];
+        }
+        else
+        {
+            if (_part2Index >= _part2Order.Count) return null;
+            return _part2Order[_part2Index++];
+        }
+    }
+
+    //V: check that all tasks for a given part have been played
+    public bool HasMoreTasks(int part) =>
+        part == 1 ? _part1Index < _part1Order.Count : _part2Index < _part2Order.Count;
 
     public List<TaskConfig> GetPart1Tasks() => Data.tasks.Where(t => t.taskPart == 1).ToList();
     public List<TaskConfig> GetPart2Tasks() => Data.tasks.Where(t => t.taskPart == 2).ToList();
-    public string GetPackageId() => $"p{AssignedPackageNumber:D2}";
 }

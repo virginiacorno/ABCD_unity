@@ -45,7 +45,7 @@ public class DataLogger : MonoBehaviour
             "screen_name,phase," +
             "from_camera,to_camera," +
             "movement_type,t_step_press_global,t_step_press_curr_run,length_step," +
-            "curr_loc_x,curr_loc_z,t_step_end_global," +
+            "curr_loc_x,curr_loc_z,to_loc_x,to_loc_z,t_step_end_global," +
             "curr_rew_x,curr_rew_z,state,type,trial,task," +
             "t_reward_start,reward_delay,reward_found," +
             "from_rotation,to_rotation," +
@@ -65,11 +65,11 @@ public class DataLogger : MonoBehaviour
         public string fromCamera, toCamera;
         public string movementType;
         public float tStepPressGlobal, tStepPressCurrRun, lengthStep;
-        public float currLocX, currLocZ, tStepEndGlobal;
+        public float currLocX, currLocZ, toLocX, toLocZ, tStepEndGlobal;
         public float currRewX, currRewZ;
         public string state, type;
         public int trial;
-        public string task; //V: need to add some kind of task name/id to log here
+        public string task; 
         public float tRewardStart, rewardDelay;
         public bool rewardFound;
         public float fromRotation, toRotation;
@@ -85,7 +85,7 @@ public class DataLogger : MonoBehaviour
             $"{r.screenName},{r.phase}," +
             $"{r.fromCamera},{r.toCamera}," +
             $"{r.movementType},{r.tStepPressGlobal},{r.tStepPressCurrRun},{r.lengthStep}," +
-            $"{r.currLocX},{r.currLocZ},{r.tStepEndGlobal}," +
+            $"{r.currLocX},{r.currLocZ},{r.toLocX},{r.toLocZ},{r.tStepEndGlobal}," +
             $"{r.currRewX},{r.currRewZ},{r.state},{r.type},{r.trial},{r.task}," +
             $"{r.tRewardStart},{r.rewardDelay},{r.rewardFound}," +
             $"{r.fromRotation},{r.toRotation}," +
@@ -121,7 +121,7 @@ public class DataLogger : MonoBehaviour
     }
 
     public void LogStep(float tStepPressGlobal, float tStepPressCurrRun, float lengthStep,
-        float currLocX, float currLocZ, float tStepEndGlobal,
+        float currLocX, float currLocZ, float toLocX, float toLocZ, float tStepEndGlobal,
         float currRewX, float currRewZ, string state, string type, int trial, string task)
     {
         var row = new LogRow();
@@ -135,6 +135,8 @@ public class DataLogger : MonoBehaviour
         row.lengthStep = lengthStep;
         row.currLocX = currLocX;
         row.currLocZ = currLocZ;
+        row.toLocX = toLocX;
+        row.toLocZ = toLocZ;
         row.tStepEndGlobal = tStepEndGlobal;
         row.currRewX = currRewX;
         row.currRewZ = currRewZ;
@@ -204,5 +206,15 @@ public class DataLogger : MonoBehaviour
             writer.Close();
         }
     }
+
+    void OnDestroy()
+    {
+        if (writer != null)
+        {
+            writer.Flush();
+            writer.Close();
+        }
+    }
+
 
 }

@@ -39,8 +39,8 @@ public class CameraManager : MonoBehaviour, ICameraController
         
         if (!isPractice)
         {
-            //V: Start with first configuration (index 0)
-            StartNewConfiguration(0);
+            //V: Start with first configuration
+            StartNewConfiguration(rewardManager.GetCurrentConfigIndex());
         }
     }
     
@@ -95,7 +95,7 @@ public class CameraManager : MonoBehaviour, ICameraController
             for (int i = 0; i < rewardManager.GetCurrentRewardCount(); i++)
             {
                 //V: check if reward warning should be displayed
-                if (rewardManager.GetCurrentConfigName().StartsWith("backw"))
+                if (rewardManager.config.IsBackw)
                 {
                     backwWarning.SetActive(true);
                 }
@@ -127,6 +127,8 @@ public class CameraManager : MonoBehaviour, ICameraController
 
     public IEnumerator TransitionToFirstPerson()
     {
+        firstPersonCamera.enabled = true;
+        
         //V: disable tbackwarning warning and log it
         if (backwWarning.activeSelf)
         {
