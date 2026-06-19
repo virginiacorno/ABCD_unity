@@ -161,9 +161,9 @@ public class moveplayer : MonoBehaviour
     bool WithinBounds(Vector3 position) //V: check that we are within grid boundaries
     {
         float leftBound = -5.3f;
-        float rightBound = 15.3f;
-        float upBound = 25.6f; //V: for upper bounds we use z coordinates
-        float bottomBound = 5f;
+        float rightBound = 35.9f;
+        float upBound = 35.9f; //V: for upper bounds we use z coordinates
+        float bottomBound = -5.3f;
         float tolerance = 0.1f;
 
         return position.x > leftBound - tolerance && 
