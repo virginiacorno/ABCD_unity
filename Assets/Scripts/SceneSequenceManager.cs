@@ -9,13 +9,8 @@ using UnityEditor.SceneManagement;
 public class SceneSequenceManager : MonoBehaviour
 {
      public static SceneSequenceManager Instance { get; private set; }
-
-    private const string practicePhase = "PracticeTrial";
-    private const string taskPhase = "Part 1";
-    private const string cuePhase = "Part 2";
-
-    [Header("Player State")]
-    public int instructionCorrectStreak = 0;
+    private const string part1 = "Part 1";
+    private const string part2 = "Part 2";
 
 
     void Awake()
@@ -29,23 +24,16 @@ public class SceneSequenceManager : MonoBehaviour
         DontDestroyOnLoad(gameObject);
         Debug.Log("[SceneSequence] Manager initialized");
     }
-
-    public void GoToPracticePhase()
-    {
-        Debug.Log("[SceneSequence] Loading PracticePhase");
-        LoadScene(practicePhase);
-    }
-
     public void GoToTask()
     {
         Debug.Log("[SceneSequence] Loading TaskPhase");
-        LoadScene(taskPhase);  
+        LoadScene(part1);  
     }
 
-    public void GoToCueTask()
+    public void GoToTask2()
     {
         Debug.Log("[SceneSequence] Loading CuePhase");
-        LoadScene(cuePhase); 
+        LoadScene(part2); 
     }
 
     void LoadScene(string sceneName)
@@ -62,9 +50,5 @@ public class SceneSequenceManager : MonoBehaviour
 #endif
     }
 
-    public void IncrementInstructionStreak()
-    {
-        instructionCorrectStreak++;
-        Debug.Log($"[SceneSequence] Instruction streak: {instructionCorrectStreak}");
-    }
+
 }

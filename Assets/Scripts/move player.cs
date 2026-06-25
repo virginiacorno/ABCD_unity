@@ -5,8 +5,6 @@ public class moveplayer : MonoBehaviour
     private float _rotationFrom;
 
     public float gridStepSize = 10.3f;
-    public float moveSpeed = 7.0f; //V: modify later, should go back to 3f to ensure 2 TRs in shortest path
-    public float rotationSpeed = 100f;
 
     public rewardManager rewardManager;
     
@@ -30,7 +28,12 @@ public class moveplayer : MonoBehaviour
     private float _tStepPressCurrRun;
     private float _rotationPressGlobal;
     private float _rotationPressCurrRun;
-    private float repStartTime;
+    public float repStartTime;
+
+    //V: variables for jittering durations
+    private float _currentStepDuration = 1.0f;
+    private float _currentRotationDuration = 1.0f;
+
     
     void Start()
     {
@@ -76,8 +79,10 @@ public class moveplayer : MonoBehaviour
         string keyPressed = null;
         Vector3 oldPosition = transform.position;
 
-        if (keyboard.upArrowKey.wasPressedThisFrame) //V: up key is the only one allowing to move, the other ones are just controlling rotations
+        if (keyboard.digit2Key.wasPressedThisFrame) //V: up key is the only one allowing to move, the other ones are just controlling rotations
         {
+            _currentStepDuration = rewardManager.GetStepDuration();
+
             _tStepPressGlobal = Time.time - TRPulse.Instance.t0; //V: time since experiment started (i.e., t0 detected)
             _tStepPressCurrRun = Time.time - repStartTime;
             _positionAtPress = transform.position;
@@ -90,34 +95,29 @@ public class moveplayer : MonoBehaviour
                 stepCount ++;
             }
             CameraController.DisableMiniMap();
-            keyPressed = "up";
+            keyPressed = "2";
         }
-        else if (keyboard.downArrowKey.wasPressedThisFrame)
+        else if (keyboard.digit1Key.wasPressedThisFrame)
         {
-            _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
-            _rotationPressCurrRun = Time.time - repStartTime;
+            _currentRotationDuration = rewardManager.GetRotationDuration();
 
-            SetTarget(180f);
-            CameraController.DisableMiniMap();
-            keyPressed = "down";
-        }
-        else if (keyboard.leftArrowKey.wasPressedThisFrame)
-        {
             _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
             _rotationPressCurrRun = Time.time - repStartTime;
 
             SetTarget(-90f);
             CameraController.DisableMiniMap();
-            keyPressed = "left";
+            keyPressed = "1";
         }
-        else if (keyboard.rightArrowKey.wasPressedThisFrame)
+        else if (keyboard.digit3Key.wasPressedThisFrame)
         {
+            _currentRotationDuration = rewardManager.GetRotationDuration();
+
             _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
             _rotationPressCurrRun = Time.time - repStartTime;
 
             SetTarget(90f);
             CameraController.DisableMiniMap();
-            keyPressed = "right";
+            keyPressed = "3";
         }
 
     }
@@ -135,7 +135,7 @@ public class moveplayer : MonoBehaviour
         transform.rotation = Quaternion.RotateTowards(
             transform.rotation,
             targetRotation,
-            rotationSpeed * Time.deltaTime
+            (90f / _currentRotationDuration) * Time.deltaTime
         );
 
         if (Quaternion.Angle(transform.rotation, targetRotation) < 0.01f)
@@ -144,16 +144,20 @@ public class moveplayer : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, y, 0);
             isRotating = false;
 
+            float tEnd = Time.time - TRPulse.Instance.t0;
+            float tEndCurrRun = Time.time - repStartTime;
             Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
             DataLogger.Instance.LogRotation(
                 _rotationPressGlobal, _rotationPressCurrRun,
+                tEnd, tEndCurrRun,
                 _rotationFrom, transform.rotation.eulerAngles.y,
                 transform.position.x, transform.position.z,
                 rewPos.x, rewPos.z,
                 rewardManager.GetCurrentState(),
                 rewardManager.config.IsBackw ? "backw" : "forw",
                 rewardManager.repsCompleted,
-                rewardManager.GetCurrentConfigName()
+                rewardManager.GetCurrentConfigName(),
+                _currentRotationDuration
             );
         }
     }
@@ -177,7 +181,7 @@ public class moveplayer : MonoBehaviour
         transform.position = Vector3.MoveTowards(
             transform.position,
             targetPosition,
-            moveSpeed * Time.deltaTime
+            (gridStepSize / _currentStepDuration) * Time.deltaTime
         );
 
         if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
@@ -185,15 +189,16 @@ public class moveplayer : MonoBehaviour
             transform.position = targetPosition;
             isMoving = false;
 
-            float tStepEndGlobal = Time.time - TRPulse.Instance.t0;
+            float tEnd = Time.time - TRPulse.Instance.t0;
+            float tEndCurrRun = Time.time - repStartTime;
             Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
 
             DataLogger.Instance.LogStep(
                 _tStepPressGlobal, _tStepPressCurrRun,
-                0f,
+                tEnd, tEndCurrRun,
+                _currentStepDuration,
                 _positionAtPress.x, _positionAtPress.z,
                 transform.position.x, transform.position.z,
-                tStepEndGlobal,
                 rewPos.x, rewPos.z,
                 rewardManager.GetCurrentState(),
                 rewardManager.config.IsBackw ? "backw" : "forw",

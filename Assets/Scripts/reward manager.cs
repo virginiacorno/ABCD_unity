@@ -30,6 +30,14 @@ public class rewardManager : MonoBehaviour
     private int optimalSubpaths;
     private int _currentPart;
 
+    //V: variables related to jitters
+    private float _trialT = 1.75f;
+    private float _trialRotDuration;
+    private const float _rotFraction = 0.4f;
+    private bool _lastMoveWasRotation = false;
+    private float _TRdur = 1.078f;
+
+
 
     void Awake()
     {
@@ -124,6 +132,8 @@ public class rewardManager : MonoBehaviour
             );
             player.stepCount = 0; //V: reset it at the beginning of trials
 
+            SampleTrialJitter();
+
             Debug.Log($"Loaded {_activeTasks[index].configName}");
         }
     }
@@ -168,11 +178,14 @@ public class rewardManager : MonoBehaviour
 
         //V: check for space bar presses
         Keyboard keyboard = Keyboard.current;
-        if (keyboard != null && keyboard.spaceKey.wasPressedThisFrame)
+        if (keyboard != null && keyboard.digit4Key.wasPressedThisFrame)
         {
             bool atRewardLocation = (distance < 0.01f);
             
             // log all space bar presses
+            float tStart = Time.time - TRPulse.Instance.t0;
+            float tStartCurrRun = Time.time - player.repStartTime;
+            float rewardDelay = atRewardLocation ? GetRewardDisplayDuration() : 0f;
             DataLogger.Instance.LogRewardCheck(
                 playerPosition.x, playerPosition.z,
                 currReward.transform.position.x, currReward.transform.position.z,
@@ -182,8 +195,11 @@ public class rewardManager : MonoBehaviour
                 repsCompleted,
                 GetCurrentConfigName(),
                 atRewardLocation,
-                atRewardLocation ? Time.time - TRPulse.Instance.t0 : 0f,
-                0f
+                tStart,
+                tStartCurrRun,
+                tStart + rewardDelay,
+                tStartCurrRun + rewardDelay,
+                rewardDelay
             );
             
             // Only process reward if at correct location
@@ -206,7 +222,7 @@ public class rewardManager : MonoBehaviour
                     player.inputEnabled = false;
                     repsCompleted++;
 
-                    Invoke("CompleteTrial", 0.5f);
+                    Invoke("CompleteTrial", GetRewardDisplayDuration()); //V: have player wait at reward for the amount of time specified by the jitter
                     return true;
                 }
 
@@ -215,6 +231,9 @@ public class rewardManager : MonoBehaviour
                 Debug.Log($"Reward {nextRewardIdx + 1}/{rewardCount} found!");
                 
                 ShowReward(nextRewardIdx);
+                player.inputEnabled = false;
+                Invoke("ReEnableInput", GetRewardDisplayDuration());
+
                 lastShownRewardIdx = nextRewardIdx;
                 
                 nextRewardIdx += config.IsBackw ? -1 : 1; //V: if it's a backward trial, subtract 1 (otherwise add 1)
@@ -226,6 +245,9 @@ public class rewardManager : MonoBehaviour
                         player.transform.position,
                         config.rewardPositions[nextRewardIdx].ToVector3()
                     );
+
+                    _lastMoveWasRotation = false;
+
                     Debug.Log($"shortest path = {shortestPath}");
                 }
 
@@ -239,9 +261,11 @@ public class rewardManager : MonoBehaviour
                         player.transform.position,
                         config.rewardPositions[nextRewardIdx].ToVector3()
                     );
+
+                    _lastMoveWasRotation = false;
                 }
-                
-                return true;  
+
+                return true;
             }
             else
             {
@@ -268,7 +292,11 @@ public class rewardManager : MonoBehaviour
 
     public void CompleteTrial() //V: check if we have completed all repetitions of the current trial and switch to next configuration if appropriate
     {
-        // Cue is hidden in ResetTrial() or StartNextConfigForFreeNav() after delay
+        if (lastShownRewardIdx >= 0)
+        {
+            HideReward(lastShownRewardIdx);
+            lastShownRewardIdx = -1;
+        }
 
         if (repsCompleted >= _trialsPerTask)  
         {
@@ -343,12 +371,15 @@ public class rewardManager : MonoBehaviour
         returnToA = false;
 
         player.inputEnabled = true;
+        player.repStartTime = Time.time;
 
         shortestPath = CalculateShortestPath(
             player.transform.position,
             config.rewardPositions[nextRewardIdx].ToVector3()
         );
         player.stepCount = 0;
+
+        SampleTrialJitter();
 
         Debug.Log($"Starting trial {repsCompleted + 1}/{_trialsPerTask} of Config {currentConfigIdx}");
     }
@@ -426,6 +457,102 @@ public class rewardManager : MonoBehaviour
         );
     }
 
+    //V: helper function to calculate the optimal number of rotations for a given shortest path
+    int CalculateOptimalRotations(Vector3 from, Vector3 to, Vector3 facingDir)
+    {
+        //V: calculate how much the player would need to move horizontally and vertically to reach the target form the current location
+        float dx = to.x - from.x;
+        float dz = to.z - from.z;
+
+        // 0 mid-path turns if straight line, 1 if L-shaped
+        int midPathTurn = (Mathf.Abs(dx) > 0.1f && Mathf.Abs(dz) > 0.1f) ? 1 : 0;
+
+        //V: find optimal first direction to move in based on current facing
+        Vector3 firstDir;
+        if (Mathf.Abs(dx) < 0.1f) //V: if parth is only horizontal (player is already facing the correct direction)
+            firstDir = new Vector3(0, 0, Mathf.Sign(dz));
+        else if (Mathf.Abs(dz) < 0.1f) //V: if path is only vertical
+            firstDir = new Vector3(Mathf.Sign(dx), 0, 0);
+        else //V: if rotations are needed, then first pick the rotation that is closest to current player facing
+        {
+            Vector3 xDir = new Vector3(Mathf.Sign(dx), 0, 0); //V: vector pointing in the right horizontal direction (East or West)
+            Vector3 zDir = new Vector3(0, 0, Mathf.Sign(dz)); //V: vector pointing in the right vertical direction (North or South)
+
+            //V: measure the angle between the current and and X/Z facing direction
+            float angleToX = Mathf.Abs(Vector3.SignedAngle(facingDir, xDir, Vector3.up));
+            float angleToZ = Mathf.Abs(Vector3.SignedAngle(facingDir, zDir, Vector3.up));
+
+            //V: pick first move that requires the least rotations
+            firstDir = (angleToX <= angleToZ) ? xDir : zDir;
+        }
+
+        // how many 90 degree turns to align with firstDir (0, 1, or 2)
+        float angle = Mathf.Abs(Vector3.SignedAngle(facingDir, firstDir, Vector3.up));
+        int turnsToAlign = Mathf.RoundToInt(angle / 90f);
+
+        return turnsToAlign + midPathTurn;
+    }
+
+
+    //V: helper functions for sampling step velocities (reproduces Marsaglia-Tsan method, which underlies np.gamma function)
+    float SampleNormal()
+    {
+        float u1 = Mathf.Max(1e-10f, Random.value);
+        float u2 = Random.value;
+        return Mathf.Sqrt(-2f * Mathf.Log(u1)) * Mathf.Sin(2f * Mathf.PI * u2);
+    }
+
+    float SampleGamma(float shape)
+    {
+        if (shape < 1f)
+            return SampleGamma(shape + 1f) * Mathf.Pow(Random.value, 1f / shape);
+
+        float d = shape - 1f / 3f;
+        float c = 1f / Mathf.Sqrt(9f * d);
+        while (true)
+        {
+            float x, v;
+            do { x = SampleNormal(); v = 1f + c * x; } while (v <= 0f);
+            v = v * v * v;
+            float u = Random.value;
+            if (u < 1f - 0.0331f * x * x * x * x) return d * v;
+            if (Mathf.Log(u) < 0.5f * x * x + d * (1f - v + Mathf.Log(v))) return d * v;
+        }
+    }
+
+    //V: samples T once per trial from a truncated gamma; T is the duration of every step
+    //V: rotation takes _rotFraction of T; post-rotation step takes the remainder so rotation+step = T
+    //V: tMin ensures at least 2 TRs of walking on the shortest subpath; tMax keeps trials under 15s
+    public void SampleTrialJitter()
+    {
+        float shape = 5.75f;
+        float total;
+        do { total = SampleGamma(shape); }
+        while (total < 6f || total > 15f);
+
+        _trialT = total / shortestPath;
+        _trialRotDuration = _trialT * _rotFraction;
+        _lastMoveWasRotation = false;
+    }
+
+    public float GetStepDuration()
+    {
+        float duration = _lastMoveWasRotation ? _trialT - _trialRotDuration : _trialT;
+        _lastMoveWasRotation = false;
+        return duration;
+    }
+
+    public float GetRotationDuration()
+    {
+        _lastMoveWasRotation = true;
+        return _trialRotDuration;
+    }
+
+    public float GetRewardDisplayDuration()
+    {
+        return 2f * _TRdur;
+    }
+
     //V; helper functions to determine current state and position of the reward to find for logging
     public string GetCurrentState()
     {
@@ -436,5 +563,16 @@ public class rewardManager : MonoBehaviour
     public Vector3 GetCurrentRewardPosition()
     {
         return GetRewardWorldPosition(nextRewardIdx);
+    }
+
+    //V: helper function to re enable input 
+    void ReEnableInput()
+    {
+        if (lastShownRewardIdx >= 0)
+        {
+            HideReward(lastShownRewardIdx);
+            lastShownRewardIdx = -1;
+        }
+        player.inputEnabled = true;
     }
 }

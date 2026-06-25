@@ -19,8 +19,7 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
     //V: update the behaviour of buttons
     public override void OnInstructionButton()
     {
-        DataLogger.Instance.LogScreen("instruction", "button_press");
-        DataLogger.Instance.LogScreen("instruction", "offset");
+        DataLogger.Instance.LogScreen("instruction", _screenOnset, Time.time - TRPulse.Instance.t0);
         movementPanel.SetActive(false);
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -32,8 +31,7 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 
     public override void OnMovementButton()
     {
-        DataLogger.Instance.LogScreen("movement", "button_press");
-        DataLogger.Instance.LogScreen("movement", "offset");
+        DataLogger.Instance.LogScreen("movement", _screenOnset, Time.time - TRPulse.Instance.t0);
         movementPanel.SetActive(false);
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -44,8 +42,7 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 
     public override void OnFeedbackButton()
     {
-        DataLogger.Instance.LogScreen("feedback", "button_press");
-        DataLogger.Instance.LogScreen("feedback", "offset");
+        DataLogger.Instance.LogScreen("feedback", _screenOnset, Time.time - TRPulse.Instance.t0);
         movementPanel.SetActive(false);
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -56,8 +53,7 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
 
     public override void OnContinueButton()
     {
-        DataLogger.Instance.LogScreen("new_sequence", "button_press");
-        DataLogger.Instance.LogScreen("new_sequence", "offset");
+        DataLogger.Instance.LogScreen("new_sequence", _screenOnset, Time.time - TRPulse.Instance.t0);
         instructionPanel.SetActive(false);
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -66,9 +62,14 @@ public class ClassicTaskInstructionManager : TaskInstructionManagerBase
         rewardManager.StartNextConfiguration();
     }
 
-    //V: call loading of the next scene instead of displaying an end screen
     public override void EndScreen()
     {
-        SceneSequenceManager.Instance.GoToCueTask();
+        endScreenPanel?.SetActive(true);
+        Time.timeScale = 0f;
+    }
+
+    public void OnEndScreenButton()
+    {
+        SceneSequenceManager.Instance.GoToTask2();
     }
 }

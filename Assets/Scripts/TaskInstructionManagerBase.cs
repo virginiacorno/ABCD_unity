@@ -14,6 +14,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
     public rewardManager rewardManager;
     public moveplayer player;
     public Button instructionButton;
+    protected float _screenOnset;
 
     public void ShowInstructionPanel()
     {
@@ -32,7 +33,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         newSeqPanel.SetActive(false);
         if (instructionButton != null) instructionButton.interactable = true;
         Time.timeScale = 0f;
-        DataLogger.Instance.LogScreen("instruction", "onset");
+        _screenOnset = Time.time - TRPulse.Instance.t0;
     }
 
     public void ShowMovementInstruction()
@@ -42,7 +43,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        DataLogger.Instance.LogScreen("movement", "onset");
+        _screenOnset = Time.time - TRPulse.Instance.t0;
     }
 
     public void ShowFeedback(int optimal, int total)
@@ -55,7 +56,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         movementPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        DataLogger.Instance.LogScreen("feedback", "onset");
+        _screenOnset = Time.time - TRPulse.Instance.t0;
     }
 
     public void NewSequenceInstructions()
@@ -65,7 +66,7 @@ public abstract class TaskInstructionManagerBase : MonoBehaviour
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
         Time.timeScale = 0f;
-        DataLogger.Instance.LogScreen("new_sequence", "onset");
+        _screenOnset = Time.time - TRPulse.Instance.t0;
     }
 
     public abstract void OnInstructionButton();

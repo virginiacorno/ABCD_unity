@@ -3923,7 +3923,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b506182ca3a80458c81c40ed7768f654, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::SceneSequenceManager
-  instructionCorrectStreak: 0
 --- !u!4 &692044527
 Transform:
   m_ObjectHideFlags: 0
@@ -4968,12 +4967,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::moveplayer
   gridStepSize: 10.3
-  moveSpeed: 7
-  rotationSpeed: 100
   rewardManager: {fileID: 1972259391}
   _cameraController: {fileID: 206655264}
   inputEnabled: 1
   stepCount: 0
+  repStartTime: 0
 --- !u!114 &918918313
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5755,7 +5753,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 1061503323}
         m_TargetAssemblyTypeName: ClassicTaskInstructionManager, Assembly-CSharp
-        m_MethodName: OnContinueButton
+        m_MethodName: OnEndScreenButton
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}

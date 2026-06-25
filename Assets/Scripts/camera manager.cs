@@ -17,6 +17,7 @@ public class CameraManager : MonoBehaviour, ICameraController
 
     //V: backward warning text
     public GameObject backwWarning;
+    private float _cameraTransitionStart;
     
     //V: specify timing variables
     public float[] rewardDisplayTime;
@@ -137,7 +138,7 @@ public class CameraManager : MonoBehaviour, ICameraController
 
         //V: Show the player during the transition
         player.GetComponent<Renderer>().enabled = true;
-        DataLogger.Instance.LogCameraTransition("start", "top_down", "first_person");
+        _cameraTransitionStart = Time.time - TRPulse.Instance.t0;
 
         //V: Read start position/rotation from the minimap camera (set in Inspector)
         Vector3 startPos = miniMapCamera.transform.position;
@@ -168,7 +169,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         miniMapCamera.transform.position = startPos;
         miniMapCamera.transform.rotation = startRot;
 
-        DataLogger.Instance.LogCameraTransition("complete", "top_down", "first_person");
+        DataLogger.Instance.LogCameraTransition("top_down", "first_person", _cameraTransitionStart, Time.time - TRPulse.Instance.t0);
         StartGamePhase();
     }
     
@@ -179,6 +180,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         player.GetComponent<Renderer>().enabled = true;
         player.GetComponent<moveplayer>().enabled = true;
         player.GetComponent<moveplayer>().inputEnabled = true;
+        player.GetComponent<moveplayer>().repStartTime = Time.time;
 
         Debug.Log("Find the rewards in order: A → B → C → D");
     }

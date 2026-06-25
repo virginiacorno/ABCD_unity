@@ -39,6 +39,7 @@ public class TRPulse : MonoBehaviour
                     {
                         t0 = Time.time;
                         DataLogger.Instance.SetT0(t0);
+                        DataLogger.Instance.LogPulse();
                         instructionManager.ShowInstruction();
                     }
                 }
