@@ -56,7 +56,7 @@ public class TaskPackageManager : MonoBehaviour
 
     void LoadTasks()
     {
-        string resourcePath = "Tasks/fMRI_tasks";
+        string resourcePath = "Tasks/fMRI_tasks_new";
         TextAsset taskFile = Resources.Load<TextAsset>(resourcePath);
 
         if (taskFile == null)

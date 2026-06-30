@@ -3,7 +3,7 @@ using UnityEngine.InputSystem;
 
 public class TRPulse : MonoBehaviour
 {
-    public ClassicTaskInstructionManager instructionManager;
+    public InstructionManager instructionManager;
 
     public static TRPulse Instance { get; private set; }
 
@@ -26,21 +26,22 @@ public class TRPulse : MonoBehaviour
             Keyboard keyboard = Keyboard.current;
             if (keyboard == null) return;
 
-            if (keyboard.digit5Key.wasPressedThisFrame) //V: add log calls once updated the logger
+            if (keyboard.digit5Key.wasPressedThisFrame || keyboard.numpad5Key.wasPressedThisFrame) 
             {
+                if (counter > 4) return; //V: don't do anything if first 5 TRs were already detected
                 if (t0 == 0f)
                 {
                     if (counter < 4)
                     {
                         counter++;
                     }
-
                     else
                     {
                         t0 = Time.time;
                         DataLogger.Instance.SetT0(t0);
                         DataLogger.Instance.LogPulse();
                         instructionManager.ShowInstruction();
+                        counter++; 
                     }
                 }
             }

@@ -3152,7 +3152,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4c1fb8b1abb20485795c7d7ea9a8d1ba, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TRPulse
-  instructionManager: {fileID: 1061503323}
+  instructionManager: {fileID: 1061503325}
   t0: 0
   counter: 0
 --- !u!4 &566952950
@@ -5136,7 +5136,7 @@ MonoBehaviour:
   taskHalfInput: {fileID: 1032967051}
   confirmButton: {fileID: 367132919}
   dialogPanel: {fileID: 956870030}
-  instructionManager: {fileID: 1061503323}
+  instructionManager: {fileID: 1061503325}
 --- !u!1 &988667050
 GameObject:
   m_ObjectHideFlags: 0
@@ -5438,8 +5438,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1061503324}
   - component: {fileID: 1061503323}
+  - component: {fileID: 1061503325}
   m_Layer: 0
-  m_Name: ClassicTaskInstructionManager
+  m_Name: TaskInstructionManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5483,6 +5484,29 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1061503325
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1061503322}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d794b7cca1b194a91a55aed23e4bf34e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InstructionManager
+  instructionPanel: {fileID: 1196633667}
+  movementPanel: {fileID: 809574927}
+  feedbackPanel: {fileID: 622309647}
+  feedbackText: {fileID: 518146200}
+  newSeqPanel: {fileID: 1779987936}
+  rewardManager: {fileID: 1972259391}
+  player: {fileID: 918918312}
+  instructionButton: {fileID: 0}
+  cameraManager: {fileID: 206655264}
+  endScreenPanel: {fileID: 1919381302}
+  backwardWarningPanel: {fileID: 1613221274}
 --- !u!1 &1097495877
 GameObject:
   m_ObjectHideFlags: 0
@@ -7250,7 +7274,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 30, y: 150}
+  m_AnchoredPosition: {x: 10, y: 150}
   m_SizeDelta: {x: 1415, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1832513490
@@ -7273,18 +7297,9 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Try to get to the gems in the smallest number of steps possible.
-
-
-    Use
-    the left, right, and down arrow keys to turn, and the up arrow key to move forward.
-
-
-    Press
-    the space bar to uncover a gem.
-
-
-'
+  m_text: "Try to get to the gems in the smallest number of steps possible.\n\nUse
+    you index finger to turn left, your middle finger to take a step and your ring
+    finger to go right. \n\nUse your pinky to uncover a gem.\n\n"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
   m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
@@ -7927,7 +7942,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::rewardManager
   rewardPrefab: {fileID: 8944818978998613366, guid: 724d237596c0e5f4e96db63a4516d303, type: 3}
-  instructionManager: {fileID: 1061503323}
+  instructionManager: {fileID: 1061503325}
   repsCompleted: 0
   player: {fileID: 918918312}
 --- !u!4 &1972259392

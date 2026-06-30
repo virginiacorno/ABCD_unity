@@ -10,7 +10,7 @@ public class rewardManager : MonoBehaviour
     public GameObject rewardPrefab;
 
     [Header("UI References")]
-    public TaskInstructionManagerBase instructionManager;
+    public InstructionManager instructionManager;
 
     private List<TaskConfig> _activeTasks;
     private int _trialsPerTask;
@@ -525,12 +525,12 @@ public class rewardManager : MonoBehaviour
     //V: tMin ensures at least 2 TRs of walking on the shortest subpath; tMax keeps trials under 15s
     public void SampleTrialJitter()
     {
-        float shape = 5.75f;
+        float shape = 3f;
         float total;
         do { total = SampleGamma(shape); }
-        while (total < 6f || total > 15f);
+        while (total < _TRdur || total > 7.5f);
 
-        _trialT = total / shortestPath;
+        _trialT = total;
         _trialRotDuration = _trialT * _rotFraction;
         _lastMoveWasRotation = false;
     }

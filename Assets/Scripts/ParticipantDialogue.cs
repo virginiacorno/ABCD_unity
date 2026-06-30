@@ -8,7 +8,7 @@ public class ParticipantDialogue : MonoBehaviour
     public TMP_InputField taskHalfInput;
     public Button confirmButton;
     public GameObject dialogPanel;
-    public TaskInstructionManagerBase instructionManager;
+    public InstructionManager instructionManager;
 
     void Start()
     {
