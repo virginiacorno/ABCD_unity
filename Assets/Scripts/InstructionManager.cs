@@ -21,6 +21,7 @@ public class InstructionManager : MonoBehaviour
     private float _screenOnset;
     private bool _canAdvance; //V: set to false in the first instruction screen, becomes true after 5TRs detected
     private float _screenShownAt;
+    private const float _feedbackDuration = 3.5f; //V: feedback screen is fixed-length, not keypress-dismissed, to keep BOLD timing consistent
 
     void Start()
     {
@@ -44,7 +45,6 @@ public class InstructionManager : MonoBehaviour
 
         if (instructionPanel.activeSelf)   AdvanceInstruction();
         else if (movementPanel.activeSelf) AdvanceMovement();
-        else if (feedbackPanel.activeSelf) AdvanceFeedback();
         else if (newSeqPanel.activeSelf)   AdvanceNewSequence();
         else if (endScreenPanel.activeSelf) AdvanceEndScreen();
     }
@@ -91,8 +91,15 @@ public class InstructionManager : MonoBehaviour
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
         _screenOnset = Time.time - TRPulse.Instance.t0;
-        _canAdvance = true;
         _screenShownAt = Time.unscaledTime;
+        StartCoroutine(AutoAdvanceFeedback());
+    }
+
+    //V: feedback screen isn't keypress-dismissed; it always advances after a fixed real-time duration
+    private System.Collections.IEnumerator AutoAdvanceFeedback()
+    {
+        yield return new WaitForSecondsRealtime(_feedbackDuration);
+        if (feedbackPanel.activeSelf) AdvanceFeedback();
     }
 
     public void NewSequenceInstructions()

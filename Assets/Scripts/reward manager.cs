@@ -34,6 +34,7 @@ public class rewardManager : MonoBehaviour
     private float _trialT = 1.75f;
     private float _trialRotDuration;
     private const float _rotFraction = 0.4f;
+    private const float _rewardFraction = 0.8f;
     private bool _lastMoveWasRotation = false;
     private float _TRdur = 1.078f;
 
@@ -548,9 +549,10 @@ public class rewardManager : MonoBehaviour
         return _trialRotDuration;
     }
 
+    //V: reward waiting time is proportional to the trial's step duration, floored at 2 TRs 
     public float GetRewardDisplayDuration()
     {
-        return 2f * _TRdur;
+        return Mathf.Max(2f * _TRdur, _rewardFraction * _trialT);
     }
 
     //V; helper functions to determine current state and position of the reward to find for logging
