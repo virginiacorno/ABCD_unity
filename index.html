@@ -21,6 +21,7 @@
   (function(){
     var originalLog = console.log.bind(console);
     var doneSent = false;
+    var timeoutSent = false;
 
     console.log = function() {
       var args = Array.prototype.slice.call(arguments);
@@ -38,6 +39,13 @@
             try { window.parent.postMessage('ABCD_DONE', '*'); } catch(e) {}
             originalLog('[postMessage bridge] ABCD_DONE sent to parent (console path).');
           }, 500);
+        }
+
+        // Catch ABCD_TIMEOUT from Debug.Log — forward immediately so Pavlovia can end the trial without saving
+        if (!timeoutSent && text.indexOf('ABCD_TIMEOUT') !== -1) {
+          timeoutSent = true;
+          try { window.parent.postMessage('ABCD_TIMEOUT', '*'); } catch(e) {}
+          originalLog('[postMessage bridge] ABCD_TIMEOUT sent to parent (console path).');
         }
 
         // Catch [WEBGL_DATA] logs as fallback if jslib isn't active yet
@@ -92,6 +100,7 @@
      Pavlovia parent, and handles SET_PARTICIPANT.
      ============================================================ */
   var doneSentViaMessage = false;
+  var timeoutSentViaMessage = false;
   var unityInstance = null;
 
   window.addEventListener('message', function(event) {
@@ -108,6 +117,18 @@
         try { window.parent.postMessage('ABCD_DONE', '*'); } catch(e) {}
         console.log('[postMessage bridge] ABCD_DONE forwarded to parent (message path).');
       }, 500);
+      return;
+    }
+
+    // Detect ABCD_TIMEOUT however it arrives
+    if (!timeoutSentViaMessage && (
+        d === 'ABCD_TIMEOUT' ||
+        (d && d.type === 'ABCD_TIMEOUT') ||
+        (d && d.type === 'UNITY_DATA' && d.data && d.data.event_type === 'ABCD_TIMEOUT')
+    )) {
+      timeoutSentViaMessage = true;
+      try { window.parent.postMessage('ABCD_TIMEOUT', '*'); } catch(e) {}
+      console.log('[postMessage bridge] ABCD_TIMEOUT forwarded to parent (message path).');
       return;
     }
 
