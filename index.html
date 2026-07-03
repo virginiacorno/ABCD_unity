@@ -16,7 +16,7 @@
   <script>
   /* ============================================================
      STEP 1: Console interceptor — BEFORE loader (critical)
-     Catches Debug.Log("ABCD_DONE") from Unity
+     Catches Debug.Log("ABCD_DONE") and Debug.Log("ABCD_TIMEOUT") from Unity
      ============================================================ */
   (function(){
     var originalLog = console.log.bind(console);
@@ -95,9 +95,10 @@
   <script>
 
   /* ============================================================
-     STEP 2: postMessage listener — catches ABCD_DONE arriving
-     via the jslib postMessage path, forwards UNITY_DATA to
-     Pavlovia parent, and handles SET_PARTICIPANT.
+     STEP 2: postMessage listener — catches ABCD_DONE and
+     ABCD_TIMEOUT arriving via the jslib postMessage path,
+     forwards UNITY_DATA to Pavlovia parent, and handles
+     SET_PARTICIPANT.
      ============================================================ */
   var doneSentViaMessage = false;
   var timeoutSentViaMessage = false;
@@ -110,7 +111,7 @@
     if (!doneSentViaMessage && (
         d === 'ABCD_DONE' ||
         (d && d.type === 'ABCD_DONE') ||
-        (d && d.type === 'UNITY_DATA' && d.data && d.data.event_type === 'ABCD_DONE')
+        (d && d.type === 'UNITY_DATA' && d.data && d.data.eventType === 'ABCD_DONE')
     )) {
       doneSentViaMessage = true;
       setTimeout(function() {
@@ -124,7 +125,7 @@
     if (!timeoutSentViaMessage && (
         d === 'ABCD_TIMEOUT' ||
         (d && d.type === 'ABCD_TIMEOUT') ||
-        (d && d.type === 'UNITY_DATA' && d.data && d.data.event_type === 'ABCD_TIMEOUT')
+        (d && d.type === 'UNITY_DATA' && d.data && d.data.eventType === 'ABCD_TIMEOUT')
     )) {
       timeoutSentViaMessage = true;
       try { window.parent.postMessage('ABCD_TIMEOUT', '*'); } catch(e) {}
