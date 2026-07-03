@@ -170,13 +170,13 @@
   }
 
   var loaderScript = document.createElement('script');
-  loaderScript.src = 'Build/ABCD_git.loader.js';
+  loaderScript.src = 'Build/ABCD_pavlovia.loader.js';
   loaderScript.onload = function() {
     createUnityInstance(document.querySelector("#unity-canvas"), {
       arguments: [],
-      dataUrl:        "Build/ABCD_git.data",
-      frameworkUrl:   "Build/ABCD_git.framework.js",
-      codeUrl:        "Build/ABCD_git.wasm",
+      dataUrl:        "Build/ABCD_pavlovia.data",
+      frameworkUrl:   "Build/ABCD_pavlovia.framework.js",
+      codeUrl:        "Build/ABCD_pavlovia.wasm",
       streamingAssetsUrl: "StreamingAssets",
       companyName:    "DefaultCompany",
       productName:    "ABCD_unity",
