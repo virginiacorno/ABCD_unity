@@ -81,7 +81,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         miniMapCamera.enabled = true;
 
         //V: Mini-map in top-right corner
-        miniMapCamera.rect = new Rect(0.75f, 0.75f, 0.25f, 0.25f);
+        miniMapCamera.rect = new Rect(0.85f, 0.75f, 0.20f, 0.25f); //V: (x, y, width, height)
         miniMapCamera.depth = 1;
     }
     
@@ -138,7 +138,7 @@ public class CameraManager : MonoBehaviour, ICameraController
 
         //V: Show the player during the transition
         player.GetComponent<Renderer>().enabled = true;
-        _cameraTransitionStart = Time.time - TRPulse.Instance.t0;
+        _cameraTransitionStart = Time.time - DataLogger.Instance.T0;
 
         //V: Read start position/rotation from the minimap camera (set in Inspector)
         Vector3 startPos = miniMapCamera.transform.position;
@@ -169,7 +169,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         miniMapCamera.transform.position = startPos;
         miniMapCamera.transform.rotation = startRot;
 
-        DataLogger.Instance.LogCameraTransition("top_down", "first_person", _cameraTransitionStart, Time.time - TRPulse.Instance.t0);
+        DataLogger.Instance.LogCameraTransition("top_down", "first_person", _cameraTransitionStart, Time.time - DataLogger.Instance.T0);
         StartGamePhase();
     }
     

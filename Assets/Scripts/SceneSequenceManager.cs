@@ -8,7 +8,7 @@ using UnityEditor.SceneManagement;
 
 public class SceneSequenceManager : MonoBehaviour
 {
-     public static SceneSequenceManager Instance { get; private set; }
+    public static SceneSequenceManager Instance { get; private set; }
     private const string part1 = "Part 1";
     private const string part2 = "Part 2";
 

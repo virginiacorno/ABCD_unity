@@ -83,7 +83,7 @@ public class moveplayer : MonoBehaviour
         {
             _currentStepDuration = rewardManager.GetStepDuration();
 
-            _tStepPressGlobal = Time.time - TRPulse.Instance.t0; //V: time since experiment started (i.e., t0 detected)
+            _tStepPressGlobal = Time.time - DataLogger.Instance.T0; //V: time since experiment started (i.e., t0 detected)
             _tStepPressCurrRun = Time.time - repStartTime;
             _positionAtPress = transform.position;
 
@@ -101,7 +101,7 @@ public class moveplayer : MonoBehaviour
         {
             _currentRotationDuration = rewardManager.GetRotationDuration();
 
-            _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
+            _rotationPressGlobal = Time.time - DataLogger.Instance.T0;
             _rotationPressCurrRun = Time.time - repStartTime;
 
             SetTarget(-90f);
@@ -112,7 +112,7 @@ public class moveplayer : MonoBehaviour
         {
             _currentRotationDuration = rewardManager.GetRotationDuration();
 
-            _rotationPressGlobal = Time.time - TRPulse.Instance.t0;
+            _rotationPressGlobal = Time.time - DataLogger.Instance.T0;
             _rotationPressCurrRun = Time.time - repStartTime;
 
             SetTarget(90f);
@@ -144,7 +144,7 @@ public class moveplayer : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, y, 0);
             isRotating = false;
 
-            float tEnd = Time.time - TRPulse.Instance.t0;
+            float tEnd = Time.time - DataLogger.Instance.T0;
             float tEndCurrRun = Time.time - repStartTime;
             Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
             DataLogger.Instance.LogRotation(
@@ -189,7 +189,7 @@ public class moveplayer : MonoBehaviour
             transform.position = targetPosition;
             isMoving = false;
 
-            float tEnd = Time.time - TRPulse.Instance.t0;
+            float tEnd = Time.time - DataLogger.Instance.T0;
             float tEndCurrRun = Time.time - repStartTime;
             Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
 

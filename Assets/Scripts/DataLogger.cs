@@ -1,11 +1,17 @@
 using UnityEngine;
 using System.IO;
 using System.Text;
+using System;
+using System.Runtime.InteropServices;
+
 
 public class DataLogger : MonoBehaviour
 {
     public static DataLogger Instance { get; private set; }
 
+    [DllImport("__Internal")]
+    private static extern void SendDataToJS(string jsonData);
+    public float T0 { get; set; }
     private float t0;
     private StreamWriter writer;
     private string participantId;
@@ -28,11 +34,24 @@ public class DataLogger : MonoBehaviour
         t0 = value;
     }
 
+    public void StartTrial()
+    {
+        T0 = Time.time;
+    }
+
+    public void SetParticipantInfo(string info)
+    {
+        string[] parts = info.Split('|');
+        Initialise(parts[0], parts.Length > 1 ? parts[1] : "");
+    }
+
     public void Initialise(string participantId, string taskHalf)
     {
         this.participantId = participantId;
         this.taskHalf = taskHalf;
+        isInitialised = true;
 
+        #if UNITY_EDITOR
         string homeDir = System.Environment.GetFolderPath(System.Environment.SpecialFolder.UserProfile);
         string dir = Path.Combine(homeDir, "ABCD_data", participantId, "beh");
         Directory.CreateDirectory(dir);
@@ -50,13 +69,15 @@ public class DataLogger : MonoBehaviour
             "curr_rew_x,curr_rew_z,state,type,trial,task," +
             "reward_delay,reward_found," +
             "from_rotation,to_rotation," +
-            "distance"
+            "distance," +
+            "shortest_path,path_taken"
         );
-        
+
         writer.Flush();
-        isInitialised = true;
+        #endif
     }
 
+    [System.Serializable]
     private struct LogRow
     {
         public string eventType, participantId, taskHalf;
@@ -74,11 +95,21 @@ public class DataLogger : MonoBehaviour
         public bool rewardFound;
         public float fromRotation, toRotation;
         public float distance;
+        public int shortestPath;
+        public int pathTaken;
     }
 
     private void WriteRow(LogRow r)
     {
-        if (!isInitialised) return;
+        string json = JsonUtility.ToJson(r);
+        Debug.Log("[WEBGL_DATA] " + json);
+
+        #if UNITY_WEBGL && !UNITY_EDITOR
+        try { SendDataToJS(json); }
+        catch (Exception e) { Debug.LogError($"Failed to send data to JS: {e.Message}"); }
+        #endif
+
+        if (writer == null) return;
         writer.WriteLine(
             $"{r.eventType},{r.participantId},{r.taskHalf}," +
             $"{r.tStart},{r.tStartCurrRun},{r.tEnd},{r.tEndCurrRun}," +
@@ -89,7 +120,8 @@ public class DataLogger : MonoBehaviour
             $"{r.currRewX},{r.currRewZ},{r.state},{r.type},{r.trial},{r.task}," +
             $"{r.rewardDelay},{r.rewardFound}," +
             $"{r.fromRotation},{r.toRotation}," +
-            $"{r.distance}"
+            $"{r.distance}," +
+            $"{r.shortestPath},{r.pathTaken}"
         );
         writer.Flush();
     }
@@ -179,7 +211,8 @@ public class DataLogger : MonoBehaviour
     public void LogRewardCheck(float currLocX, float currLocZ, float currRewX, float currRewZ,
         float distance, string state, string type, int trial, string task,
         bool rewardFound, float tStart = 0f, float tStartCurrRun = 0f,
-        float tEnd = 0f, float tEndCurrRun = 0f, float rewardDelay = 0f)
+        float tEnd = 0f, float tEndCurrRun = 0f, float rewardDelay = 0f,
+        int shortestPath = 0, int pathTaken = 0)
     {
         var row = new LogRow();
         row.eventType = "reward_check";
@@ -200,6 +233,8 @@ public class DataLogger : MonoBehaviour
         row.task = task;
         row.rewardFound = rewardFound;
         row.rewardDelay = rewardDelay;
+        row.shortestPath = shortestPath;
+        row.pathTaken = pathTaken;
         WriteRow(row);
     }
 

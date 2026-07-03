@@ -12,6 +12,10 @@ public class rewardManager : MonoBehaviour
     [Header("UI References")]
     public InstructionManager instructionManager;
 
+    [Header("Practice")]
+    public bool isPractice = false;
+    public TextAsset configurationFile;
+
     private List<TaskConfig> _activeTasks;
     private int _trialsPerTask;
 
@@ -46,8 +50,15 @@ public class rewardManager : MonoBehaviour
 
         if (_activeTasks != null && _activeTasks.Count > 0)
         {
-            string firstConfig = TaskPackageManager.Instance.GetNextConfigName(_currentPart);
-            currentConfigIdx = _activeTasks.FindIndex(t => t.configName == firstConfig);
+            if (isPractice)
+            {
+                currentConfigIdx = 0;
+            }
+            else
+            {
+                string firstConfig = TaskPackageManager.Instance.GetNextConfigName(_currentPart);
+                currentConfigIdx = _activeTasks.FindIndex(t => t.configName == firstConfig);
+            }
         }
         else
         {
@@ -67,6 +78,21 @@ public class rewardManager : MonoBehaviour
 
     void LoadTasks()
     {
+        if (isPractice)
+        {
+            if (configurationFile == null)
+            {
+                Debug.LogError("[rewardManager] Configuration file not assigned!");
+                return;
+            }
+            var data = JsonUtility.FromJson<PackageData>(configurationFile.text);
+            _activeTasks = data.tasks;
+            _trialsPerTask = data.trialsPerTask;
+            _currentPart = 0;
+            Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} practice task(s)");
+            return;
+        }
+
         if (TaskPackageManager.Instance == null)
         {
             Debug.LogError("[rewardManager] No TaskPackageManager found!");
@@ -163,28 +189,28 @@ public class rewardManager : MonoBehaviour
     {
         if (_activeTasks == null) return false;
         if (currentRewardObjects == null) return false;
-        Debug.Log($"Player position: {playerPosition}");
-        Debug.Log($"nextRewardIdx: {nextRewardIdx}");
         int rewardsToCollect = config.rewardPositions.Count;
-        
+
         if (nextRewardIdx >= rewardsToCollect || nextRewardIdx < 0) //V: < 0 in case we are in backward trials
         {
             return false;
         }
-        
+
         GameObject currReward = currentRewardObjects[nextRewardIdx];
         float distance = Vector3.Distance(playerPosition, currReward.transform.position);
-
-        Debug.Log($"Reward {nextRewardIdx} position: {currReward.transform.position}, Distance: {distance}");
 
         //V: check for space bar presses
         Keyboard keyboard = Keyboard.current;
         if (keyboard != null && keyboard.digit4Key.wasPressedThisFrame)
         {
+            Debug.Log($"Player position: {playerPosition}");
+            Debug.Log($"nextRewardIdx: {nextRewardIdx}");
+            Debug.Log($"Reward {nextRewardIdx} position: {currReward.transform.position}, Distance: {distance}");
+
             bool atRewardLocation = (distance < 0.01f);
             
             // log all space bar presses
-            float tStart = Time.time - TRPulse.Instance.t0;
+            float tStart = Time.time - DataLogger.Instance.T0;
             float tStartCurrRun = Time.time - player.repStartTime;
             float rewardDelay = atRewardLocation ? GetRewardDisplayDuration() : 0f;
             DataLogger.Instance.LogRewardCheck(
@@ -200,7 +226,9 @@ public class rewardManager : MonoBehaviour
                 tStartCurrRun,
                 tStart + rewardDelay,
                 tStartCurrRun + rewardDelay,
-                rewardDelay
+                rewardDelay,
+                shortestPath,
+                player.stepCount
             );
             
             // Only process reward if at correct location
