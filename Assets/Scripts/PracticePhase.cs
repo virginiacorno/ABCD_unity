@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using System.Collections.Generic;
 
 public class PracticePhase : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class PracticePhase : MonoBehaviour
     public float rewardDisplayTime = 2f;
     public float pauseBetweenTrials = 0.5f;
     private int currentStreak = 0;
+    private List<int> _remainingTargets = new List<int>(); //V: which grid locations we haven't visited yet
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     public void StartPractice()
@@ -24,22 +26,49 @@ public class PracticePhase : MonoBehaviour
     }
 
 
+    //V: function ensuring each position ID in the Practice json file is only appearing once, only repeat indices if we have visited them all
+    int GetNextTargetIdx()
+    {
+        if (_remainingTargets.Count == 0)
+        {
+            int count = rewardManager.GetCurrentRewardCount();
+            for (int i = 0; i < count; i++) _remainingTargets.Add(i);
+        }
+        int randomIdx = Random.Range(0, _remainingTargets.Count);
+        int targetIdx = _remainingTargets[randomIdx];
+        _remainingTargets.RemoveAt(randomIdx);
+        return targetIdx;
+    }
+
+    //V: random cell from the loaded config's own positions, excluding the current trial's target
+    Vector3 GetRandomStartPosition(int excludeIdx)
+    {
+        List<GridPosition> positions = rewardManager.config.rewardPositions;
+        List<int> candidates = new List<int>();
+        for (int i = 0; i < positions.Count; i++)
+        {
+            if (i != excludeIdx) candidates.Add(i);
+        }
+        int idx = candidates[Random.Range(0, candidates.Count)];
+        return positions[idx].ToVector3();
+    }
+
     IEnumerator RunPracticeLoop()
     {
         while (currentStreak < requiredStreak)
         {
             //V: show location of the reward
             cameraManager.SetupMemorizationCamera();
-            //V: set the player in the centre of the grid but keep it invisible
-            player.transform.position = new Vector3(15.3f, 1f, 15.3f);
+
+            //V: pick the next target, cycling through every cell once before repeating
+            int targetIdx = GetNextTargetIdx();
+
+            //V: set the player at a random cell that isn't this trial's target, but keep it invisible
+            player.transform.position = GetRandomStartPosition(targetIdx);
             player.transform.rotation = Quaternion.Euler(0f, 0f, 0f);
             player.GetComponent<Renderer>().enabled = false;
 
-            //V; pick random reward from the configuration
-            int rewardCount = rewardManager.GetCurrentRewardCount();
-            int targetIdx = Random.Range(0, rewardCount);
-
-            //V: show the reward and then start 
+            //V: show the reward and then start
             rewardManager.ShowReward(targetIdx);
             yield return new WaitForSeconds(rewardDisplayTime);
             rewardManager.HideReward(targetIdx);

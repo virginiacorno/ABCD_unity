@@ -79,12 +79,29 @@ public class TaskPackageManager : MonoBehaviour
             .OrderBy(_ => Random.value)
             .ToList();
 
+        //V: check if first task is type forward, if not get first task in the shuffled order with type = "forw" and place it at index 0
+        if (Data.tasks.First(t => t.taskPart == 1 && t.configName == _part1Order[0]).taskType != "forw")
+        {
+            string forwardConfig = _part1Order.First(name =>
+                Data.tasks.First(t => t.taskPart == 1 && t.configName == name).taskType == "forw");
+            _part1Order.Remove(forwardConfig);
+            _part1Order.Insert(0, forwardConfig);
+        }
+
         _part2Order = Data.tasks
             .Where(t => t.taskPart == 2)
             .Select(t => t.configName)
             .Distinct()
             .OrderBy(_ => Random.value)
             .ToList();
+        
+        if (Data.tasks.First(t => t.taskPart == 2 && t.configName == _part2Order[0]).taskType != "forw")
+        {
+            string forwardConfig = _part2Order.First(name =>
+                Data.tasks.First(t => t.taskPart == 2 && t.configName == name).taskType == "forw");
+            _part2Order.Remove(forwardConfig);
+            _part2Order.Insert(0, forwardConfig);
+        }
 
         Debug.Log($"[PackageManager] Part 1 order: {string.Join(", ", _part1Order)}");
         Debug.Log($"[PackageManager] Part 2 order: {string.Join(", ", _part2Order)}");

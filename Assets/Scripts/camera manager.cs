@@ -23,6 +23,7 @@ public class CameraManager : MonoBehaviour, ICameraController
     public float[] rewardDisplayTime;
     public float[] pauseBetweenRewards;
     public float pauseBetweenSeq = 1f;
+    public float delayBeforeFirstReward = 1f; //V: lets the top-down/minimap view show on its own before the first reward cue appears
     
     [Header("Memorization Settings")]
     public int memorizationRepetitions = 2;  //V: how many times to show the sequence
@@ -87,6 +88,9 @@ public class CameraManager : MonoBehaviour, ICameraController
     
     IEnumerator ShowRewardSequence()
     {
+        //V: give the participant a moment on the top-down view before the first reward appears
+        yield return new WaitForSeconds(delayBeforeFirstReward);
+
         //V: Show sequence multiple times
         for (int repetition = 0; repetition < memorizationRepetitions; repetition++)
         {
