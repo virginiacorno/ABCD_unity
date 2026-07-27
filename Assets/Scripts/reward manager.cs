@@ -25,7 +25,6 @@ public class rewardManager : MonoBehaviour
     public int repsCompleted = 0;
     private int lastShownRewardIdx = -1;
     public moveplayer player;
-    private bool returnToA = false;
     public TaskConfig config => _activeTasks[currentConfigIdx];
 
     //V: variabke storing shortest path 
@@ -122,7 +121,6 @@ public class rewardManager : MonoBehaviour
             currentConfigIdx = index;
             nextRewardIdx = GetStartIndex();
             lastShownRewardIdx = -1;
-            returnToA = false;
 
             // Destroy old rewards
             if (currentRewardObjects != null)
@@ -162,7 +160,20 @@ public class rewardManager : MonoBehaviour
             SampleTrialJitter();
 
             Debug.Log($"Loaded {_activeTasks[index].configName}");
+            SendProgressUpdate();
         }
+    }
+
+    //V: pings Pavlovia with current task/trial number for the progress display, skipped during practice (no TaskPackageManager involved)
+    void SendProgressUpdate()
+    {
+        if (isPractice) return;
+        DataLogger.Instance.SendProgress(
+            TaskPackageManager.Instance.GetTasksDispensed(_currentPart),
+            GetTotalConfigurations(),
+            repsCompleted + 1,
+            _trialsPerTask
+        );
     }
 
     int GetStartIndex()
@@ -240,20 +251,7 @@ public class rewardManager : MonoBehaviour
                     optimalSubpaths++;
                 player.stepCount = 0;
 
-                if (returnToA) //V: if this was set true before, turn it off, show the reward and then increase reps completed
-                {
-                    returnToA = false;
-
-                    int returnIdx = config.IsBackw ? config.rewardPositions.Count - 1 : 0;
-                    ShowReward(returnIdx);
-                    lastShownRewardIdx = returnIdx;
-
-                    player.inputEnabled = false;
-                    repsCompleted++;
-
-                    Invoke("CompleteTrial", GetRewardDisplayDuration()); //V: have player wait at reward for the amount of time specified by the jitter
-                    return true;
-                }
+                bool isLastReward = config.IsBackw ? (nextRewardIdx == 0) : (nextRewardIdx == rewardsToCollect - 1);
 
                 Debug.Log("spacebar was pressed at reward location");
                 int rewardCount = config.rewardPositions.Count;
@@ -267,8 +265,15 @@ public class rewardManager : MonoBehaviour
                 
                 nextRewardIdx += config.IsBackw ? -1 : 1; //V: if it's a backward trial, subtract 1 (otherwise add 1)
 
+                //V: if we have found last reward, stop player for duration of reward display and then reset trial
+                if(isLastReward)
+                {
+                    Debug.Log("last reward collected, completing trial");
+                    repsCompleted++;
+                    Invoke("CompleteTrial", GetRewardDisplayDuration());
+                }
                 //V: calculate optimal steps for next subpath (if there is a reward)
-                if (nextRewardIdx >= 0 && nextRewardIdx < rewardsToCollect)
+                else
                 {
                     shortestPath = CalculateShortestPath(
                         player.transform.position,
@@ -278,20 +283,6 @@ public class rewardManager : MonoBehaviour
                     _lastMoveWasRotation = false;
 
                     Debug.Log($"shortest path = {shortestPath}");
-                }
-
-                // V: if we have collected last reward (D/A), then return to A to complete the trial
-                if (nextRewardIdx >= rewardsToCollect || nextRewardIdx < 0)
-                {
-                    Debug.Log("return to A");
-                    returnToA = true;
-                    nextRewardIdx = config.IsBackw ? config.rewardPositions.Count - 1 : 0;
-                    shortestPath = CalculateShortestPath(
-                        player.transform.position,
-                        config.rewardPositions[nextRewardIdx].ToVector3()
-                    );
-
-                    _lastMoveWasRotation = false;
                 }
 
                 return true;
@@ -397,7 +388,6 @@ public class rewardManager : MonoBehaviour
         HideAllRewards();
         nextRewardIdx = config.IsBackw ? config.rewardPositions.Count - 2 : 1; // V: next reward to find is B, so transition for zero-shot is included in each trial
         lastShownRewardIdx = -1;
-        returnToA = false;
 
         player.inputEnabled = true;
         player.repStartTime = Time.time;
@@ -411,6 +401,7 @@ public class rewardManager : MonoBehaviour
         SampleTrialJitter();
 
         Debug.Log($"Starting trial {repsCompleted + 1}/{_trialsPerTask} of Config {currentConfigIdx}");
+        SendProgressUpdate();
     }
 
     public void ShowReward(int index)

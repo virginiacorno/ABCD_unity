@@ -21,6 +21,13 @@ public class DataLogger : MonoBehaviour
     public string TaskHalf => taskHalf;
 
     public bool isInitialised = false;
+
+    [System.Serializable] //V: needed to display current task number and trial in pavlovia
+    private struct ProgressRow
+    {
+        public string eventType;
+        public int taskNumber, totalTasks, trialNumber, totalTrials;
+    }
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; };
@@ -266,5 +273,15 @@ public class DataLogger : MonoBehaviour
         }
     }
 
+    public void SendProgress(int taskNumber, int totalTasks, int trialNumber, int totalTrials)
+    {
+        var row = new ProgressRow { eventType = "progress", taskNumber = taskNumber,
+            totalTasks = totalTasks, trialNumber = trialNumber, totalTrials = totalTrials };
+        string json = JsonUtility.ToJson(row);
+        Debug.Log("[WEBGL_DATA] " + json);
+        #if UNITY_WEBGL && !UNITY_EDITOR
+        try { SendDataToJS(json); } catch (Exception e) { Debug.LogError($"Failed to send progress to JS: {e.Message}"); }
+        #endif
+    }
 
 }

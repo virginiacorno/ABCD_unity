@@ -38,6 +38,8 @@ public class TaskPackageManager : MonoBehaviour
     private int _part1Index = 0;
     private int _part2Index = 0;
 
+    public int GetTasksDispensed(int part) => part == 1 ? _part1Index : _part2Index; //V: needed to display in pavlovia
+
     void Awake()
     {
         if (Instance != null && Instance != this) { Destroy(gameObject); return; }

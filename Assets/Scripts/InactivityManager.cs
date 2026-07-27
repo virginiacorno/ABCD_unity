@@ -7,7 +7,7 @@ public class InactivityManager : MonoBehaviour
     public GameObject inactivityPanel;
     public TMP_Text countdownText;
 
-    public float inactivityThreshold = 120f; //V: how much inactivity time do we tolerate?
+    public float inactivityThreshold = 10f; //V: how much inactivity time do we tolerate?
     public float dismissThreshold = 60f; //V: how much time participant has to confirm they are still playing
     private float lastInputTime;
     private float panelShownTime; //V: later used to keep track of whether 1 min has passed since panel shown

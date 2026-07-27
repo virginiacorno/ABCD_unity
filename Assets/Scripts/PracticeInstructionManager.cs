@@ -4,7 +4,6 @@ using UnityEngine.InputSystem;
 public class PracticeInstructionManager : MonoBehaviour
 {
     public GameObject instructionPanel;
-    public GameObject movementPanel;
     public GameObject practicePanel;
     public moveplayer player;
     public PracticePhase practicePhase;
@@ -15,7 +14,6 @@ public class PracticeInstructionManager : MonoBehaviour
     void Start()
     {
         instructionPanel.SetActive(true);
-        movementPanel.SetActive(false);
         practicePanel.SetActive(false);
         float t = Time.time - DataLogger.Instance.T0;
         DataLogger.Instance.LogScreen("practice_phase_start", t, t);
@@ -29,24 +27,22 @@ public class PracticeInstructionManager : MonoBehaviour
         if (!Keyboard.current.anyKey.wasPressedThisFrame) return;
 
         if (instructionPanel.activeSelf) OnInstructionButton();
-        else if (movementPanel.activeSelf) OnMovementButton();
         else if (practicePanel.activeSelf) OnPracticeButton();
     }
 
     public void OnInstructionButton()
     {
-        movementPanel.SetActive(true);
         instructionPanel.SetActive(false);
         practicePanel.SetActive(false);
-        Time.timeScale = 0f;
-        _screenShownAt = Time.unscaledTime;
+        Time.timeScale = 1f; //V: free exploration is real movement, not a static panel
+        practicePhase.StartPractice();
     }
 
-    public void OnMovementButton()
+    //V: called by PracticePhase once free exploration ends (timer or space bar)
+    public void ShowPracticePanel()
     {
-        movementPanel.SetActive(false);
-        instructionPanel.SetActive(false);
         practicePanel.SetActive(true);
+        instructionPanel.SetActive(false);
         Time.timeScale = 0f;
         _screenShownAt = Time.unscaledTime;
     }
@@ -54,11 +50,10 @@ public class PracticeInstructionManager : MonoBehaviour
     public void OnPracticeButton()
     {
         instructionPanel.SetActive(false);
-        movementPanel.SetActive(false);
         practicePanel.SetActive(false);
         Time.timeScale = 1f;
 
-        practicePhase.StartPractice();
+        practicePhase.StartCoroutine(practicePhase.RunPracticeLoop());
     }
 
 }

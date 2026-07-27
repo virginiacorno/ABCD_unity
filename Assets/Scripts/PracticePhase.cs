@@ -8,11 +8,13 @@ public class PracticePhase : MonoBehaviour
     public moveplayer player;
     public rewardManager rewardManager;
     public CameraManager cameraManager;
+    public PracticeInstructionManager practiceInstructionManager;
 
     [Header("Practice Settings")]
     public int requiredStreak = 3;
     public float rewardDisplayTime = 2f;
     public float pauseBetweenTrials = 0.5f;
+    public float freeExplorationDuration = 120f; //V: how long should the free exploration trial be
     private int currentStreak = 0;
     private List<int> _remainingTargets = new List<int>(); //V: which grid locations we haven't visited yet
 
@@ -22,9 +24,28 @@ public class PracticePhase : MonoBehaviour
         rewardManager.LoadConfiguration(0);
         //V: ensure inputs are enabled but only possible to rotate (vs also moving)
         player.inputEnabled = false;
-        StartCoroutine(RunPracticeLoop());
+        StartCoroutine(RunFreeExploration());
     }
 
+    IEnumerator RunFreeExploration()
+    {
+        cameraManager.SetupGameplayCameras();
+        player.GetComponent<Renderer>().enabled = true;
+        yield return null; //V: let the keypress that dismissed the instruction screen finish this frame before movement can react to it
+        player.inputEnabled = true;
+
+        float elapsed = 0f;
+        while (elapsed < freeExplorationDuration)
+        {
+            var kb = Keyboard.current;
+            if (kb != null && kb.spaceKey.wasPressedThisFrame) break;
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        player.inputEnabled = false;
+        practiceInstructionManager.ShowPracticePanel();
+    }
 
     //V: function ensuring each position ID in the Practice json file is only appearing once, only repeat indices if we have visited them all
     int GetNextTargetIdx()
@@ -53,7 +74,7 @@ public class PracticePhase : MonoBehaviour
         return positions[idx].ToVector3();
     }
 
-    IEnumerator RunPracticeLoop()
+    public IEnumerator RunPracticeLoop()
     {
         while (currentStreak < requiredStreak)
         {
