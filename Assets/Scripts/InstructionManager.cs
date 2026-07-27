@@ -21,7 +21,7 @@ public class InstructionManager : MonoBehaviour
     private float _screenOnset;
     private bool _canAdvance; //V: set to false in the first instruction screen, becomes true after 5TRs detected
     private float _screenShownAt;
-    private const float _feedbackDuration = 3.5f; //V: feedback screen is fixed-length, not keypress-dismissed, to keep BOLD timing consistent
+    private const float _feedbackDuration = 2.5f; //V: feedback screen is fixed-length, not keypress-dismissed, to keep BOLD timing consistent
 
     void Start()
     {
@@ -41,8 +41,6 @@ public class InstructionManager : MonoBehaviour
         if (!_canAdvance) return;
         if (Time.unscaledTime - _screenShownAt < 0.5f) return;
         if (!Keyboard.current.anyKey.wasPressedThisFrame) return;
-        foreach (var key in Keyboard.current.allKeys)
-            if (key.wasPressedThisFrame) Debug.Log($"[InstructionManager] Pressed: {key.keyCode}");
         if (Keyboard.current.digit5Key.wasPressedThisFrame) return;
         if (Keyboard.current.numpad5Key.wasPressedThisFrame) return;
 

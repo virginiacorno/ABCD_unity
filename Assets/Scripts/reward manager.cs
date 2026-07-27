@@ -40,8 +40,7 @@ public class rewardManager : MonoBehaviour
     private const float _rewardFraction = 0.8f;
     private bool _lastMoveWasRotation = false;
     private float _TRdur = 1.078f;
-
-
+    public float practiceTrialSpeed = 1.75f; //V: how long should a step last in practice
 
     void Awake()
     {
@@ -107,6 +106,12 @@ public class rewardManager : MonoBehaviour
         Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks for {(isPart2 ? "Part 2" : "Part 1")}");
     }
 
+    public void SetFixedTrialSpeed(float trialT)
+    {
+        _trialT = trialT;
+        _trialRotDuration = _trialT * _rotFraction;
+    }
+
 
     //V: need repetition to ensure some delay between end of previous trial and loading new configurations
     public void LoadConfiguration()
@@ -157,7 +162,8 @@ public class rewardManager : MonoBehaviour
             );
             player.stepCount = 0; //V: reset it at the beginning of trials
 
-            SampleTrialJitter();
+            if (isPractice) SetFixedTrialSpeed(practiceTrialSpeed);
+            else SampleTrialJitter();
 
             Debug.Log($"Loaded {_activeTasks[index].configName}");
             SendProgressUpdate();
@@ -260,10 +266,9 @@ public class rewardManager : MonoBehaviour
                 
                 ShowReward(nextRewardIdx);
                 player.inputEnabled = false;
-                Invoke("ReEnableInput", GetRewardDisplayDuration());
 
                 lastShownRewardIdx = nextRewardIdx;
-                
+
                 nextRewardIdx += config.IsBackw ? -1 : 1; //V: if it's a backward trial, subtract 1 (otherwise add 1)
 
                 //V: if we have found last reward, stop player for duration of reward display and then reset trial
@@ -276,6 +281,8 @@ public class rewardManager : MonoBehaviour
                 //V: calculate optimal steps for next subpath (if there is a reward)
                 else
                 {
+                    Invoke("ReEnableInput", GetRewardDisplayDuration());
+
                     shortestPath = CalculateShortestPath(
                         player.transform.position,
                         config.rewardPositions[nextRewardIdx].ToVector3()
@@ -387,7 +394,7 @@ public class rewardManager : MonoBehaviour
     void ResetTrial()
     {
         HideAllRewards();
-        nextRewardIdx = config.IsBackw ? config.rewardPositions.Count - 2 : 1; // V: next reward to find is B, so transition for zero-shot is included in each trial
+        nextRewardIdx = GetStartIndex(); // V: no more return-to-A, so retarget reward A here instead of skipping to B
         lastShownRewardIdx = -1;
 
         player.inputEnabled = true;
@@ -553,6 +560,7 @@ public class rewardManager : MonoBehaviour
 
         _trialT = total;
         _trialRotDuration = _trialT * _rotFraction;
+        Debug.Log($"Sampled trial T = {_trialT}");
         _lastMoveWasRotation = false;
     }
 

@@ -34,8 +34,8 @@ public class CameraManager : MonoBehaviour, ICameraController
     public bool isPractice = false;
 
     [Header("Minimap Poses")]
-    public Vector3 memorizationPosition = new Vector3(15.45682f, 20.70698f, -29.73404f);
-    public Vector3 memorizationRotationEuler = new Vector3(24.855f, -0.172f, 0f);
+    public Vector3 memorizationPosition = new Vector3(14.837112f, 24.499376f, -25.248386f);
+    public Vector3 memorizationRotationEuler = new Vector3(38.09f, 0.344f, 0f);
     public Vector3 cornerPosition = new Vector3(15f, 58f, 15f);
     public Vector3 cornerRotationEuler = new Vector3(90f, 0f, 0f);
 

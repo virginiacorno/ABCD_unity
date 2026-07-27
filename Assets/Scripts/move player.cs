@@ -71,7 +71,7 @@ public class moveplayer : MonoBehaviour
     
     void CheckInput() //V: check keyboard input and set the rotation and movement targets accordingly
     {
-        if (!inputEnabled) return; //V: early return if input is disabled
+        if (!inputEnabled || isMoving || isRotating) return; //V: early return if input is disabled, or a move/rotation is already in progress
 
         Keyboard keyboard = Keyboard.current;
         if (keyboard == null) return;  // Safety check
