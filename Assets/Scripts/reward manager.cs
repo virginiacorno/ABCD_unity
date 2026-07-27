@@ -172,7 +172,8 @@ public class rewardManager : MonoBehaviour
             TaskPackageManager.Instance.GetTasksDispensed(_currentPart),
             GetTotalConfigurations(),
             repsCompleted + 1,
-            _trialsPerTask
+            _trialsPerTask,
+            _currentPart
         );
     }
 

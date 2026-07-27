@@ -27,6 +27,7 @@ public class DataLogger : MonoBehaviour
     {
         public string eventType;
         public int taskNumber, totalTasks, trialNumber, totalTrials;
+        public int part;
     }
     void Awake()
     {
@@ -273,10 +274,11 @@ public class DataLogger : MonoBehaviour
         }
     }
 
-    public void SendProgress(int taskNumber, int totalTasks, int trialNumber, int totalTrials)
+    public void SendProgress(int taskNumber, int totalTasks, int trialNumber, int totalTrials, int part)
     {
         var row = new ProgressRow { eventType = "progress", taskNumber = taskNumber,
-            totalTasks = totalTasks, trialNumber = trialNumber, totalTrials = totalTrials };
+            totalTasks = totalTasks, trialNumber = trialNumber, totalTrials = totalTrials,
+            part = part};
         string json = JsonUtility.ToJson(row);
         Debug.Log("[WEBGL_DATA] " + json);
         #if UNITY_WEBGL && !UNITY_EDITOR
