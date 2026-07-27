@@ -1326,6 +1326,10 @@ MonoBehaviour:
   memorizationRepetitions: 2
   transitionDuration: 2.5
   isPractice: 0
+  memorizationPosition: {x: 15.45682, y: 20.70698, z: -29.73404}
+  memorizationRotationEuler: {x: 24.855, y: -0.172, z: 0}
+  cornerPosition: {x: 15, y: 58, z: 15}
+  cornerRotationEuler: {x: 90, y: 0, z: 0}
 --- !u!4 &206655265
 Transform:
   m_ObjectHideFlags: 0

@@ -33,6 +33,12 @@ public class CameraManager : MonoBehaviour, ICameraController
 
     public bool isPractice = false;
 
+    [Header("Minimap Poses")]
+    public Vector3 memorizationPosition = new Vector3(15.45682f, 20.70698f, -29.73404f);
+    public Vector3 memorizationRotationEuler = new Vector3(24.855f, -0.172f, 0f);
+    public Vector3 cornerPosition = new Vector3(15f, 58f, 15f);
+    public Vector3 cornerRotationEuler = new Vector3(90f, 0f, 0f);
+
     void Start()
     {
         //V: Initialize timing arrays
@@ -70,16 +76,24 @@ public class CameraManager : MonoBehaviour, ICameraController
         backwWarning.SetActive(false);
         firstPersonCamera.enabled = false;
         miniMapCamera.enabled = true;
-        
+
+        //V: always start memorization from its own fixed pose, regardless of whatever pose gameplay left it at
+        miniMapCamera.transform.position = memorizationPosition;
+        miniMapCamera.transform.rotation = Quaternion.Euler(memorizationRotationEuler);
+
         //V: Put camera as full screen to show rewards
         miniMapCamera.rect = new Rect(0, 0, 1, 1);
         miniMapCamera.depth = 0;
     }
-    
+
     public void SetupGameplayCameras()
     {
         firstPersonCamera.enabled = true;
         miniMapCamera.enabled = true;
+
+        //V: force minimap back to its own fixed pose for the corner view, independent of whatever pose memorization used
+        miniMapCamera.transform.position = cornerPosition;
+        miniMapCamera.transform.rotation = Quaternion.Euler(cornerRotationEuler);
 
         //V: Mini-map in top-right corner
         miniMapCamera.rect = new Rect(0.85f, 0.75f, 0.20f, 0.25f); //V: (x, y, width, height)

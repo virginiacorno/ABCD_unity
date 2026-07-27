@@ -15,6 +15,7 @@ public class PracticePhase : MonoBehaviour
     public float rewardDisplayTime = 2f;
     public float pauseBetweenTrials = 0.5f;
     public float freeExplorationDuration = 120f; //V: how long should the free exploration trial be
+    public float freeExplorationMinimapDuration = 1.5f; //V: how long to show the top-down grid before transitioning to first person
     private int currentStreak = 0;
     private List<int> _remainingTargets = new List<int>(); //V: which grid locations we haven't visited yet
 
@@ -29,10 +30,11 @@ public class PracticePhase : MonoBehaviour
 
     IEnumerator RunFreeExploration()
     {
-        cameraManager.SetupGameplayCameras();
-        player.GetComponent<Renderer>().enabled = true;
-        yield return null; //V: let the keypress that dismissed the instruction screen finish this frame before movement can react to it
-        player.inputEnabled = true;
+        //V: show the grid from the top-down minimap view before transitioning to first person
+        cameraManager.SetupMemorizationCamera();
+        yield return new WaitForSeconds(freeExplorationMinimapDuration);
+
+        yield return StartCoroutine(cameraManager.TransitionToFirstPerson()); //V: transition also enables the player renderer, moveplayer, and input
 
         float elapsed = 0f;
         while (elapsed < freeExplorationDuration)
