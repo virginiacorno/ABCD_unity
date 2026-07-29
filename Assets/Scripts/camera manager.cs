@@ -156,7 +156,7 @@ public class CameraManager : MonoBehaviour, ICameraController
 
         //V: Show the player during the transition
         player.GetComponent<Renderer>().enabled = true;
-        _cameraTransitionStart = Time.time - DataLogger.Instance.T0;
+        _cameraTransitionStart = Time.unscaledTime - DataLogger.Instance.T0;
 
         //V: Read start position/rotation from the minimap camera (set in Inspector)
         Vector3 startPos = miniMapCamera.transform.position;
@@ -187,7 +187,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         miniMapCamera.transform.position = startPos;
         miniMapCamera.transform.rotation = startRot;
 
-        DataLogger.Instance.LogCameraTransition("top_down", "first_person", _cameraTransitionStart, Time.time - DataLogger.Instance.T0);
+        DataLogger.Instance.LogCameraTransition("top_down", "first_person", _cameraTransitionStart, Time.unscaledTime - DataLogger.Instance.T0);
         StartGamePhase();
     }
     
@@ -198,7 +198,7 @@ public class CameraManager : MonoBehaviour, ICameraController
         player.GetComponent<Renderer>().enabled = true;
         player.GetComponent<moveplayer>().enabled = true;
         player.GetComponent<moveplayer>().inputEnabled = true;
-        player.GetComponent<moveplayer>().repStartTime = Time.time;
+        player.GetComponent<moveplayer>().repStartTime = Time.unscaledTime;
 
         Debug.Log("Find the rewards in order: A → B → C → D");
     }

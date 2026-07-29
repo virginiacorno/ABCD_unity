@@ -15,14 +15,16 @@ public class PracticeInstructionManager : MonoBehaviour
     {
         instructionPanel.SetActive(true);
         practicePanel.SetActive(false);
-        float t = Time.time - DataLogger.Instance.T0;
+        float t = Time.unscaledTime - DataLogger.Instance.T0;
         DataLogger.Instance.LogScreen("practice_phase_start", t, t);
         Time.timeScale = 0f;
+        player.inputEnabled = false;
         _screenShownAt = Time.unscaledTime;
     }
 
     void Update() //V: advance current screen on any key press, mirrors InstructionManager's keyboard-driven progression
     {
+        if (InactivityManager.Blocking) return;
         if (Time.unscaledTime - _screenShownAt < 0.5f) return;
         if (!Keyboard.current.anyKey.wasPressedThisFrame) return;
 

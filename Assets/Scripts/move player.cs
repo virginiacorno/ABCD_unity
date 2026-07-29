@@ -50,7 +50,7 @@ public class moveplayer : MonoBehaviour
         else if (!isMoving)
         {
             CheckInput();
-            rewardManager.RewardFound(transform.position);
+            if (inputEnabled) rewardManager.RewardFound(transform.position);
         }
         else if (isMoving)
         {
@@ -83,8 +83,8 @@ public class moveplayer : MonoBehaviour
         {
             _currentStepDuration = rewardManager.GetStepDuration();
 
-            _tStepPressGlobal = Time.time - DataLogger.Instance.T0; //V: time since experiment started (i.e., t0 detected)
-            _tStepPressCurrRun = Time.time - repStartTime;
+            _tStepPressGlobal = Time.unscaledTime - DataLogger.Instance.T0; //V: time since experiment started (i.e., t0 detected)
+            _tStepPressCurrRun = Time.unscaledTime - repStartTime;
             _positionAtPress = transform.position;
 
             Vector3 potentialTarget = transform.position + (transform.forward * gridStepSize);
@@ -101,8 +101,8 @@ public class moveplayer : MonoBehaviour
         {
             _currentRotationDuration = rewardManager.GetRotationDuration();
 
-            _rotationPressGlobal = Time.time - DataLogger.Instance.T0;
-            _rotationPressCurrRun = Time.time - repStartTime;
+            _rotationPressGlobal = Time.unscaledTime - DataLogger.Instance.T0;
+            _rotationPressCurrRun = Time.unscaledTime - repStartTime;
 
             SetTarget(-90f);
             CameraController.DisableMiniMap();
@@ -112,8 +112,8 @@ public class moveplayer : MonoBehaviour
         {
             _currentRotationDuration = rewardManager.GetRotationDuration();
 
-            _rotationPressGlobal = Time.time - DataLogger.Instance.T0;
-            _rotationPressCurrRun = Time.time - repStartTime;
+            _rotationPressGlobal = Time.unscaledTime - DataLogger.Instance.T0;
+            _rotationPressCurrRun = Time.unscaledTime - repStartTime;
 
             SetTarget(90f);
             CameraController.DisableMiniMap();
@@ -144,8 +144,8 @@ public class moveplayer : MonoBehaviour
             transform.rotation = Quaternion.Euler(0, y, 0);
             isRotating = false;
 
-            float tEnd = Time.time - DataLogger.Instance.T0;
-            float tEndCurrRun = Time.time - repStartTime;
+            float tEnd = Time.unscaledTime - DataLogger.Instance.T0;
+            float tEndCurrRun = Time.unscaledTime - repStartTime;
             Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
             DataLogger.Instance.LogRotation(
                 _rotationPressGlobal, _rotationPressCurrRun,
@@ -189,8 +189,8 @@ public class moveplayer : MonoBehaviour
             transform.position = targetPosition;
             isMoving = false;
 
-            float tEnd = Time.time - DataLogger.Instance.T0;
-            float tEndCurrRun = Time.time - repStartTime;
+            float tEnd = Time.unscaledTime - DataLogger.Instance.T0;
+            float tEndCurrRun = Time.unscaledTime - repStartTime;
             Vector3 rewPos = rewardManager.GetCurrentRewardPosition();
 
             DataLogger.Instance.LogStep(

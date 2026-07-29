@@ -38,6 +38,7 @@ public class InstructionManager : MonoBehaviour
 
     void Update() //V: runs every frame checking for key presses (all but ey 5 because that's the scanner trigger)
     {
+        if (InactivityManager.Blocking) return;
         if (!_canAdvance) return;
         if (Time.unscaledTime - _screenShownAt < 0.5f) return;
         if (!Keyboard.current.anyKey.wasPressedThisFrame) return;
@@ -65,7 +66,8 @@ public class InstructionManager : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        _screenOnset = Time.time - DataLogger.Instance.T0;
+        player.inputEnabled = false;
+        _screenOnset = Time.unscaledTime - DataLogger.Instance.T0;
         _canAdvance = true;
         _screenShownAt = Time.unscaledTime;
     }
@@ -77,7 +79,8 @@ public class InstructionManager : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        _screenOnset = Time.time - DataLogger.Instance.T0;
+        player.inputEnabled = false;
+        _screenOnset = Time.unscaledTime - DataLogger.Instance.T0;
         _canAdvance = true;
         _screenShownAt = Time.unscaledTime;
     }
@@ -91,7 +94,8 @@ public class InstructionManager : MonoBehaviour
         movementPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 0f;
-        _screenOnset = Time.time - DataLogger.Instance.T0;
+        player.inputEnabled = false;
+        _screenOnset = Time.unscaledTime - DataLogger.Instance.T0;
         _screenShownAt = Time.unscaledTime;
         StartCoroutine(AutoAdvanceFeedback());
     }
@@ -110,7 +114,8 @@ public class InstructionManager : MonoBehaviour
         instructionPanel.SetActive(false);
         feedbackPanel.SetActive(false);
         Time.timeScale = 0f;
-        _screenOnset = Time.time - DataLogger.Instance.T0;
+        player.inputEnabled = false;
+        _screenOnset = Time.unscaledTime - DataLogger.Instance.T0;
         _canAdvance = true;
         _screenShownAt = Time.unscaledTime;
     }
@@ -118,7 +123,7 @@ public class InstructionManager : MonoBehaviour
     //V: button callbacks - define what happens after each screen is dismissed
     public void AdvanceInstruction()
     {
-        DataLogger.Instance.LogScreen("instruction", _screenOnset, Time.time - DataLogger.Instance.T0);
+        DataLogger.Instance.LogScreen("instruction", _screenOnset, Time.unscaledTime - DataLogger.Instance.T0);
         instructionPanel.SetActive(false);
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -129,7 +134,7 @@ public class InstructionManager : MonoBehaviour
 
     public void AdvanceMovement()
     {
-        DataLogger.Instance.LogScreen("movement", _screenOnset, Time.time - DataLogger.Instance.T0);
+        DataLogger.Instance.LogScreen("movement", _screenOnset, Time.unscaledTime - DataLogger.Instance.T0);
         instructionPanel.SetActive(false);
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -140,7 +145,7 @@ public class InstructionManager : MonoBehaviour
 
     public void AdvanceFeedback()
     {
-        DataLogger.Instance.LogScreen("feedback", _screenOnset, Time.time - DataLogger.Instance.T0);
+        DataLogger.Instance.LogScreen("feedback", _screenOnset, Time.unscaledTime - DataLogger.Instance.T0);
         instructionPanel.SetActive(false);
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -151,7 +156,7 @@ public class InstructionManager : MonoBehaviour
 
     public void AdvanceNewSequence()
     {
-        DataLogger.Instance.LogScreen("new_sequence", _screenOnset, Time.time - DataLogger.Instance.T0);
+        DataLogger.Instance.LogScreen("new_sequence", _screenOnset, Time.unscaledTime - DataLogger.Instance.T0);
         instructionPanel.SetActive(false);
         movementPanel.SetActive(false);
         feedbackPanel.SetActive(false);
@@ -164,6 +169,7 @@ public class InstructionManager : MonoBehaviour
     {
         endScreenPanel?.SetActive(true);
         Time.timeScale = 0f;
+        player.inputEnabled = false;
         _canAdvance = true;
         _screenShownAt = Time.unscaledTime;
     }

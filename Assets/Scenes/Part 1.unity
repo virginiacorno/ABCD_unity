@@ -4718,8 +4718,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::InactivityManager
   inactivityPanel: {fileID: 255395483}
   countdownText: {fileID: 1744082909}
+  warningText: {fileID: 1006576965}
+  continueButton: {fileID: 166317338}
+  player: {fileID: 918918312}
   inactivityThreshold: 120
   dismissThreshold: 60
+  maxConsecutiveWarnings: 2
+  maxTotalWarnings: 4
 --- !u!4 &1510806829
 Transform:
   m_ObjectHideFlags: 0

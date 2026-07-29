@@ -40,7 +40,7 @@ public class PracticePhase : MonoBehaviour
         while (elapsed < freeExplorationDuration)
         {
             var kb = Keyboard.current;
-            if (kb != null && kb.spaceKey.wasPressedThisFrame) break;
+            if (kb != null && player.inputEnabled && kb.spaceKey.wasPressedThisFrame) break;
             elapsed += Time.deltaTime;
             yield return null;
         }
@@ -104,7 +104,7 @@ public class PracticePhase : MonoBehaviour
             while (!pressDetected)
             {
                 var kb = Keyboard.current;
-                if (kb != null && kb.digit4Key.wasPressedThisFrame) //V: if reward is checked for, check if we are at reward location and either reset or increment the streak
+                if (kb != null && player.inputEnabled && kb.digit4Key.wasPressedThisFrame) //V: if reward is checked for, check if we are at reward location and either reset or increment the streak
                 {
                     pressDetected = true; //V: stop inner loop for constantly checking keyboard presses
                     float dist = Vector3.Distance(
@@ -136,7 +136,7 @@ public class PracticePhase : MonoBehaviour
 
         //V: while loop breaks once we complete all required streaks, so then we can proceed to task
         Debug.Log("[Practice] Streak complete — loading task scene");
-        float t = Time.time - DataLogger.Instance.T0;
+        float t = Time.unscaledTime - DataLogger.Instance.T0;
         DataLogger.Instance.LogScreen("practice_phase_end", t, t);
         SceneSequenceManager.Instance.GoToTask();
     }

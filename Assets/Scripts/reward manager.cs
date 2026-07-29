@@ -228,8 +228,8 @@ public class rewardManager : MonoBehaviour
             bool atRewardLocation = (distance < 0.01f);
             
             // log all space bar presses
-            float tStart = Time.time - DataLogger.Instance.T0;
-            float tStartCurrRun = Time.time - player.repStartTime;
+            float tStart = Time.unscaledTime - DataLogger.Instance.T0;
+            float tStartCurrRun = Time.unscaledTime - player.repStartTime;
             float rewardDelay = atRewardLocation ? GetRewardDisplayDuration() : 0f;
             DataLogger.Instance.LogRewardCheck(
                 playerPosition.x, playerPosition.z,
@@ -398,7 +398,7 @@ public class rewardManager : MonoBehaviour
         lastShownRewardIdx = -1;
 
         player.inputEnabled = true;
-        player.repStartTime = Time.time;
+        player.repStartTime = Time.unscaledTime;
 
         shortestPath = CalculateShortestPath(
             player.transform.position,

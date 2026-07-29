@@ -44,7 +44,7 @@ public class DataLogger : MonoBehaviour
 
     public void StartTrial()
     {
-        T0 = Time.time;
+        T0 = Time.unscaledTime;
     }
 
     public void SetParticipantInfo(string info)
