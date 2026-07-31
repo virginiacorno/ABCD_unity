@@ -50,7 +50,7 @@ public class DataLogger : MonoBehaviour
     public void SetParticipantInfo(string info)
     {
         string[] parts = info.Split('|');
-        Initialise(parts[0], parts.Length > 1 ? parts[1] : "");
+        Initialise(parts[0], "");
     }
 
     public void Initialise(string participantId, string taskHalf)
@@ -276,6 +276,8 @@ public class DataLogger : MonoBehaviour
 
     public void SendProgress(int taskNumber, int totalTasks, int trialNumber, int totalTrials, int part)
     {
+        this.taskHalf = part.ToString(); //V: populate taskHalf with current part
+
         var row = new ProgressRow { eventType = "progress", taskNumber = taskNumber,
             totalTasks = totalTasks, trialNumber = trialNumber, totalTrials = totalTrials,
             part = part};
