@@ -15,6 +15,28 @@
 
   <script>
   /* ============================================================
+    STEP 0: Shared dedup gate — Unity can reach the parent via
+    two paths (Debug.Log → console interceptor, and the
+    SendDataToJS shim). Both paths now funnel through this
+    function so an identical, back-to-back duplicate only gets
+    posted once, without risking loss of any genuinely new event.
+    ============================================================ */
+  var _lastSentSignature = null;
+  function forwardUnityDataOnce(data) {
+      var sig;
+      try { sig = typeof data === 'string' ? data : JSON.stringify(data); }
+      catch (e) { sig = String(data); }
+
+      if (sig === _lastSentSignature) return; // identical to the one just sent — drop it
+      _lastSentSignature = sig;
+
+      try { window.parent.postMessage({ type: 'UNITY_DATA', data: data }, '*'); }
+      catch (e) {}
+  }
+  </script>
+
+  <script>
+  /* ============================================================
      STEP 1: Console interceptor — BEFORE loader (critical)
      Catches Debug.Log("ABCD_DONE") and Debug.Log("ABCD_TIMEOUT") from Unity
      ============================================================ */
@@ -54,7 +76,7 @@
             var jsonStart = text.indexOf('{');
             if (jsonStart !== -1) {
               var data = JSON.parse(text.substring(jsonStart));
-              window.parent.postMessage({ type: 'UNITY_DATA', data: data }, '*');
+              forwardUnityDataOnce(data);
             }
           } catch(e) {}
         }
@@ -80,9 +102,9 @@
         console.log('[WEBGL_DATA] ' + s);
         try {
           var obj = JSON.parse(s);
-          window.parent.postMessage({ type: 'UNITY_DATA', data: obj }, '*');
+          forwardUnityDataOnce(obj);
         } catch (e) {
-          window.parent.postMessage({ type: 'UNITY_DATA', data: s }, '*');
+          forwardUnityDataOnce(s);
         }
       } catch (e) {
         console.error('[Shim] SendDataToJS error', e);
