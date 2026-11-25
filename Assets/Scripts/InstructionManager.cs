@@ -186,12 +186,14 @@ public class InstructionManager : MonoBehaviour
         endScreenPanel?.SetActive(true);
         Time.timeScale = 0f;
         player.inputEnabled = false;
+        _screenOnset = Time.unscaledTime - DataLogger.Instance.T0; //V: so the end screen gets logged with its onset like the other screens
         _canAdvance = true;
         _screenShownAt = Time.unscaledTime;
     }
 
     public void AdvanceEndScreen()
     {
+        DataLogger.Instance.LogScreen("end_screen", _screenOnset, Time.unscaledTime - DataLogger.Instance.T0); //V: logged before GoToNextPart so in Part 3 it reaches Pavlovia before ABCD_DONE
         GoToNextPart();
     }
 

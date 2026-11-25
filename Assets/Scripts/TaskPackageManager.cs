@@ -72,7 +72,7 @@ public class TaskPackageManager : MonoBehaviour
 
     void LoadTasks()
     {
-        string resourcePath = "Tasks/fMRI_tasks_trial"; //V: TEMPORARY short test (1 task per part, 2 trials) - switch back to "Tasks/fMRI_tasks_new" for the real study
+        string resourcePath = "Tasks/fMRI_tasks_new"; 
         TextAsset taskFile = Resources.Load<TextAsset>(resourcePath);
 
         if (taskFile == null)
