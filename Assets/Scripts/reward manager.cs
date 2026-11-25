@@ -46,22 +46,15 @@ public class rewardManager : MonoBehaviour
     {
         LoadTasks();
 
-        if (_activeTasks != null && _activeTasks.Count > 0)
-        {
-            if (isPractice)
-            {
-                currentConfigIdx = 0;
-            }
-            else
-            {
-                string firstConfig = TaskPackageManager.Instance.GetNextConfigName(_currentPart);
-                currentConfigIdx = _activeTasks.FindIndex(t => t.configName == firstConfig);
-            }
-        }
-        else
+        if (_activeTasks == null || _activeTasks.Count == 0)
         {
             Debug.LogError("No configurations loaded!");
         }
+        else if (isPractice)
+        {
+            currentConfigIdx = 0;
+        }
+        //V: in Parts 1-3 the first task is no longer picked here - it's drawn in InstructionManager.AdvanceMovement (see PickNextConfig)
     }
 
 
@@ -97,13 +90,25 @@ public class rewardManager : MonoBehaviour
             return;
         }
 
-        bool isPart2 = SceneManager.GetActiveScene().name == "Part 2";
-        _activeTasks = isPart2
-            ? TaskPackageManager.Instance.GetPart2Tasks()
-            : TaskPackageManager.Instance.GetPart1Tasks();
-        _currentPart = isPart2 ? 2 : 1;
+        //V: every task is available in every part; TaskPackageManager excludes the ones already played
+        string sceneName = SceneManager.GetActiveScene().name;
+        _currentPart = sceneName == "Part 3" ? 3 : sceneName == "Part 2" ? 2 : 1;
+        _activeTasks = TaskPackageManager.Instance.GetAllTasks();
         _trialsPerTask = TaskPackageManager.Instance.Data.trialsPerTask;
-        Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks for {(isPart2 ? "Part 2" : "Part 1")}");
+        TaskPackageManager.Instance.BeginPart(_currentPart);
+        Debug.Log($"[rewardManager] Loaded {_activeTasks.Count} tasks for Part {_currentPart}");
+    }
+
+    //V: randomly pick an unplayed task and make it the current one; returns its index, or -1 if none are left
+    public int PickNextConfig()
+    {
+        string nextConfig = TaskPackageManager.Instance.PickNextConfigName();
+        if (nextConfig == null) return -1;
+
+        currentConfigIdx = _activeTasks.FindIndex(t => t.configName == nextConfig);
+        if (currentConfigIdx == -1)
+            Debug.LogError($"[rewardManager] Could not find config '{nextConfig}' in _activeTasks!");
+        return currentConfigIdx;
     }
 
     public void SetFixedTrialSpeed(float trialT)
@@ -124,7 +129,7 @@ public class rewardManager : MonoBehaviour
         if (index >= 0 && index < _activeTasks.Count)
         {
             currentConfigIdx = index;
-            nextRewardIdx = GetStartIndex();
+            nextRewardIdx = 0; //V: always start from reward A
             lastShownRewardIdx = -1;
 
             // Destroy old rewards
@@ -175,19 +180,14 @@ public class rewardManager : MonoBehaviour
     {
         if (isPractice) return;
         DataLogger.Instance.SendProgress(
-            TaskPackageManager.Instance.GetTasksDispensed(_currentPart),
-            GetTotalConfigurations(),
+            TaskPackageManager.Instance.CurrentTaskNumber(),
+            TaskPackageManager.Instance.Data.tasksPerPart,
             repsCompleted + 1,
             _trialsPerTask,
             _currentPart
         );
     }
 
-    int GetStartIndex()
-    {
-        return config.IsBackw ? config.rewardPositions.Count - 1 : 0; //V: if the current config is a backward trial, return number corresponding to last reward index, otherwise return 0
-    }
-    
     public int GetTotalConfigurations()
     {
         return _activeTasks.Count;
@@ -209,7 +209,7 @@ public class rewardManager : MonoBehaviour
         if (currentRewardObjects == null) return false;
         int rewardsToCollect = config.rewardPositions.Count;
 
-        if (nextRewardIdx >= rewardsToCollect || nextRewardIdx < 0) //V: < 0 in case we are in backward trials
+        if (nextRewardIdx >= rewardsToCollect)
         {
             return false;
         }
@@ -236,7 +236,7 @@ public class rewardManager : MonoBehaviour
                 currReward.transform.position.x, currReward.transform.position.z,
                 distance,
                 GetCurrentState(),
-                config.IsBackw ? "backw" : "forw",
+                "forw", //V: backward trials removed; column kept so the data format matches earlier pilots
                 repsCompleted,
                 GetCurrentConfigName(),
                 atRewardLocation,
@@ -258,7 +258,7 @@ public class rewardManager : MonoBehaviour
                     optimalSubpaths++;
                 player.stepCount = 0;
 
-                bool isLastReward = config.IsBackw ? (nextRewardIdx == 0) : (nextRewardIdx == rewardsToCollect - 1);
+                bool isLastReward = (nextRewardIdx == rewardsToCollect - 1);
 
                 Debug.Log("spacebar was pressed at reward location");
                 int rewardCount = config.rewardPositions.Count;
@@ -269,7 +269,7 @@ public class rewardManager : MonoBehaviour
 
                 lastShownRewardIdx = nextRewardIdx;
 
-                nextRewardIdx += config.IsBackw ? -1 : 1; //V: if it's a backward trial, subtract 1 (otherwise add 1)
+                nextRewardIdx += 1;
 
                 //V: if we have found last reward, stop player for duration of reward display and then reset trial
                 if(isLastReward)
@@ -326,19 +326,15 @@ public class rewardManager : MonoBehaviour
             lastShownRewardIdx = -1;
         }
 
-        if (repsCompleted >= _trialsPerTask)  
+        if (repsCompleted >= _trialsPerTask)
         {
-            if (TaskPackageManager.Instance.HasMoreTasks(_currentPart))
+            Debug.Log($"{_activeTasks[currentConfigIdx].configName} complete!");
+            TaskPackageManager.Instance.MarkPlayed(GetCurrentConfigName()); //V: saved before picking the next one
+
+            if (TaskPackageManager.Instance.HasMoreTasks())
             {
-                Debug.Log($"{_activeTasks[currentConfigIdx].configName} complete!");
-                string nextConfig = TaskPackageManager.Instance.GetNextConfigName(_currentPart);
-                currentConfigIdx = _activeTasks.FindIndex(t => t.configName == nextConfig);
-                if (currentConfigIdx == -1)
-                {
-                    Debug.LogError($"[rewardManager] Could not find config in _activeTasks!");
-                    return;
-                }
-                    
+                if (PickNextConfig() == -1) return;
+
                 repsCompleted = 0;
 
                 CameraManager camManager = FindFirstObjectByType<CameraManager>();
@@ -382,7 +378,7 @@ public class rewardManager : MonoBehaviour
     public void StartNextConfigForFreeNav()
     {
         HideAllRewards();
-        nextRewardIdx = GetStartIndex();
+        nextRewardIdx = 0;
         lastShownRewardIdx = -1;
 
         player.CameraController.SetupGameplayCameras();
@@ -394,7 +390,7 @@ public class rewardManager : MonoBehaviour
     void ResetTrial()
     {
         HideAllRewards();
-        nextRewardIdx = GetStartIndex(); // V: no more return-to-A, so retarget reward A here instead of skipping to B
+        nextRewardIdx = 0; // V: no more return-to-A, so retarget reward A here instead of skipping to B
         lastShownRewardIdx = -1;
 
         player.inputEnabled = true;
@@ -461,8 +457,8 @@ public class rewardManager : MonoBehaviour
 
     public Vector3 GetStartPosition()
     {
-        int lastRewardIdx = config.IsBackw ? 0 : config.rewardPositions.Count - 1;
-        return config.rewardPositions[lastRewardIdx].ToVector3();
+        //V: each task starts at its last reward location
+        return config.rewardPositions[config.rewardPositions.Count - 1].ToVector3();
     }
 
     public int GetCurrentRewardCount()
@@ -586,7 +582,6 @@ public class rewardManager : MonoBehaviour
     //V; helper functions to determine current state and position of the reward to find for logging
     public string GetCurrentState()
     {
-        int idx = config.IsBackw ? nextRewardIdx : nextRewardIdx;
         return ((char)('A' + nextRewardIdx)).ToString();
     }
 

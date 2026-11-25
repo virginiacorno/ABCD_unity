@@ -11,6 +11,7 @@ public class SceneSequenceManager : MonoBehaviour
     public static SceneSequenceManager Instance { get; private set; }
     private const string part1 = "Part 1";
     private const string part2 = "Part 2";
+    private const string part3 = "Part 3";
 
 
     void Awake()
@@ -33,7 +34,13 @@ public class SceneSequenceManager : MonoBehaviour
     public void GoToTask2()
     {
         Debug.Log("[SceneSequence] Loading CuePhase");
-        LoadScene(part2); 
+        LoadScene(part2);
+    }
+
+    public void GoToTask3()
+    {
+        Debug.Log("[SceneSequence] Loading Part 3");
+        LoadScene(part3);
     }
 
     void LoadScene(string sceneName)

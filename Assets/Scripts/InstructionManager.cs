@@ -16,7 +16,6 @@ public class InstructionManager : MonoBehaviour
     public moveplayer player;
     public CameraManager cameraManager;
     public GameObject endScreenPanel;
-    public GameObject backwardWarningPanel;
 
     private float _screenOnset;
     private bool _canAdvance; //V: set to false in the first instruction screen, becomes true after 5TRs detected
@@ -30,7 +29,15 @@ public class InstructionManager : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         endScreenPanel?.SetActive(false);
-        backwardWarningPanel?.SetActive(false);
+
+        //V: after a page reload, a part may already be finished (played tasks are remembered) - skip straight past it
+        if (!TaskPackageManager.Instance.HasMoreTasks())
+        {
+            Debug.Log($"[InstructionManager] No tasks left in {SceneManager.GetActiveScene().name}, skipping it");
+            if (SceneManager.GetActiveScene().name == "Part 3") EndScreen();
+            else GoToNextPart();
+            return;
+        }
 
         DataLogger.Instance.StartTrial();
         ShowInstruction();
@@ -140,7 +147,16 @@ public class InstructionManager : MonoBehaviour
         feedbackPanel.SetActive(false);
         newSeqPanel.SetActive(false);
         Time.timeScale = 1f;
-        cameraManager.StartNewConfiguration(rewardManager.GetCurrentConfigIndex());
+
+        //V: first task of the part is drawn here, from the tasks this participant hasn't played yet
+        int firstConfig = rewardManager.PickNextConfig();
+        if (firstConfig == -1)
+        {
+            Debug.LogError("[InstructionManager] No tasks left to play for this participant");
+            EndScreen();
+            return;
+        }
+        cameraManager.StartNewConfiguration(firstConfig);
     }
 
     public void AdvanceFeedback()
@@ -176,13 +192,15 @@ public class InstructionManager : MonoBehaviour
 
     public void AdvanceEndScreen()
     {
-        if (SceneManager.GetActiveScene().name == "Part 1")
-        {
-            SceneSequenceManager.Instance.GoToTask2();
-        }
-        else if (SceneManager.GetActiveScene().name == "Part 2")
-        {
-            Debug.Log("ABCD_DONE");
-        }
+        GoToNextPart();
+    }
+
+    //V: Part 1 -> Part 2 -> Part 3 -> tell Pavlovia the task is done
+    void GoToNextPart()
+    {
+        string scene = SceneManager.GetActiveScene().name;
+        if (scene == "Part 1")      SceneSequenceManager.Instance.GoToTask2();
+        else if (scene == "Part 2") SceneSequenceManager.Instance.GoToTask3();
+        else if (scene == "Part 3") Debug.Log("ABCD_DONE");
     }
 }

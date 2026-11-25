@@ -15,8 +15,6 @@ public class CameraManager : MonoBehaviour, ICameraController
     //V: create player object
     public GameObject player;
 
-    //V: backward warning text
-    public GameObject backwWarning;
     private float _cameraTransitionStart;
     
     //V: specify timing variables
@@ -45,10 +43,19 @@ public class CameraManager : MonoBehaviour, ICameraController
         rewardDisplayTime = new float[] {1.5f, 0.75f};
         pauseBetweenRewards = new float[] {0.5f, 0.25f};
         
+        //V: first configuration is no longer started here - InstructionManager.AdvanceMovement picks it at random and starts it
+        //V: (starting it here too also ran the gem preview twice once the game unpaused)
+        // if (!isPractice)
+        // {
+        //     //V: Start with first configuration
+        //     StartNewConfiguration(rewardManager.GetCurrentConfigIndex());
+        // }
         if (!isPractice)
         {
-            //V: Start with first configuration
-            StartNewConfiguration(rewardManager.GetCurrentConfigIndex());
+            //V: keep what StartNewConfiguration used to set up behind the instruction screens: hidden, frozen player and top-down view
+            player.GetComponent<Renderer>().enabled = false;
+            player.GetComponent<moveplayer>().enabled = false;
+            SetupMemorizationCamera();
         }
     }
     
@@ -73,7 +80,6 @@ public class CameraManager : MonoBehaviour, ICameraController
     
     public void SetupMemorizationCamera()
     {
-        backwWarning.SetActive(false);
         firstPersonCamera.enabled = false;
         miniMapCamera.enabled = true;
 
@@ -113,12 +119,6 @@ public class CameraManager : MonoBehaviour, ICameraController
             //V: Show each reward in order
             for (int i = 0; i < rewardManager.GetCurrentRewardCount(); i++)
             {
-                //V: check if reward warning should be displayed
-                if (rewardManager.config.IsBackw)
-                {
-                    backwWarning.SetActive(true);
-                }
-
                 rewardManager.ShowReward(i);
                 Debug.Log($"Reward {i + 1}/4");
 
@@ -147,12 +147,6 @@ public class CameraManager : MonoBehaviour, ICameraController
     public IEnumerator TransitionToFirstPerson()
     {
         firstPersonCamera.enabled = true;
-        
-        //V: disable tbackwarning warning and log it
-        if (backwWarning.activeSelf)
-        {
-            backwWarning.SetActive(false);
-        }
 
         //V: Show the player during the transition
         player.GetComponent<Renderer>().enabled = true;

@@ -154,7 +154,7 @@ public class moveplayer : MonoBehaviour
                 transform.position.x, transform.position.z,
                 rewPos.x, rewPos.z,
                 rewardManager.GetCurrentState(),
-                rewardManager.config.IsBackw ? "backw" : "forw",
+                "forw", //V: backward trials removed; column kept so the data format matches earlier pilots
                 rewardManager.repsCompleted,
                 rewardManager.GetCurrentConfigName(),
                 _currentRotationDuration
@@ -201,7 +201,7 @@ public class moveplayer : MonoBehaviour
                 transform.position.x, transform.position.z,
                 rewPos.x, rewPos.z,
                 rewardManager.GetCurrentState(),
-                rewardManager.config.IsBackw ? "backw" : "forw",
+                "forw", //V: backward trials removed; column kept so the data format matches earlier pilots
                 rewardManager.repsCompleted,
                 rewardManager.GetCurrentConfigName()
             );

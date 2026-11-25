@@ -19,6 +19,7 @@ public class DataLogger : MonoBehaviour
 
     public string ParticipantId => participantId;
     public string TaskHalf => taskHalf;
+    public string ParticipantInfo { get; private set; } //V: full "participant|study|session" string from Pavlovia, used as the played-tasks storage key
 
     public bool isInitialised = false;
 
@@ -47,8 +48,11 @@ public class DataLogger : MonoBehaviour
         T0 = Time.unscaledTime;
     }
 
+    public void SetPart(int part) => taskHalf = part.ToString(); //V: so rows logged before the first task of a part get the right part
+
     public void SetParticipantInfo(string info)
     {
+        ParticipantInfo = info;
         string[] parts = info.Split('|');
         Initialise(parts[0], "");
     }
